@@ -1,0 +1,133 @@
+Metadata-Version: 2.4
+Name: quantum-algorithms-sim
+Version: 0.1.0
+Summary: Quantum algorithm simulations using NumPy
+Author: Student
+License: MIT
+Requires-Python: >=3.10
+Description-Content-Type: text/markdown
+Requires-Dist: numpy
+Requires-Dist: matplotlib
+
+
+
+# Quantum Algorithms Simulation (NumPy)
+
+This repository is a learning and simulation project for **Quantum Algorithms** using **Python + NumPy**.
+
+The main goal of this project is to understand quantum computing concepts by building algorithms step-by-step
+using **linear algebra**, instead of using a ready-made quantum framework at the beginning.
+
+---
+
+## Why this project?
+
+Quantum algorithms are based on:
+- **Superposition**
+- **Interference**
+- **Entanglement**
+- **Unitary gates**
+- **Oracle / Black-box functions**
+- **Measurement and probabilities**
+
+Many beginners start directly with Qiskit or Cirq, but they don’t understand what happens inside.
+In this project, we simulate the algorithms manually using **NumPy matrices** to fully understand the math.
+
+---
+
+## What this project contains
+
+This project includes notebooks and simulations for:
+
+### 1) Deutsch Algorithm
+- Determine if a function `f(x)` is **constant** or **balanced**
+- Uses 1 quantum query (oracle call)
+
+### 2) Deutsch–Jozsa Algorithm
+- Generalization of Deutsch Algorithm for `n`-bit inputs
+- Determines constant vs balanced with 1 quantum query (quantum advantage)
+
+### 3) Grover Search Algorithm
+- Quantum search algorithm
+- Gives speedup over classical search
+
+### 4) Quantum Fourier Transform (QFT)
+- Quantum version of Fourier transform
+- Used inside many important algorithms
+
+### 5) Quantum Phase Estimation (QPE)
+- Finds eigenvalue phase of a unitary operator
+- Key part of Shor’s algorithm
+
+### 6) Shor Factoring Algorithm
+- Quantum algorithm for factoring large numbers
+- Uses QFT and phase estimation concepts
+
+---
+
+## Oracle (Black Box) Concept
+
+In many quantum algorithms, the problem is hidden in an **oracle**.
+We do not know how the function works internally.
+We only query it as:
+
+- Input: `x`
+- Output: `f(x)`
+
+In quantum form, the oracle must be reversible, so we represent it using the unitary operator:
+
+Uf : |x, y⟩ → |x, y ⊕ f(x)⟩
+
+Where:
+- `x` is the input register
+- `y` is the ancilla (helper) qubit
+- `⊕` is XOR (mod 2 addition)
+
+The oracle is usually drawn as a black-box circuit block `Uf`.
+
+---
+
+## Simulation Approach (NumPy)
+
+We simulate quantum circuits using matrices and vectors:
+
+- A **qubit state** is a vector (column vector)
+- A **gate** is a matrix
+- Applying a gate is matrix multiplication:
+
+|ψ_out⟩ = U |ψ_in⟩
+
+For multi-qubit gates, we use tensor product:
+
+U_total = U1 ⊗ U2 ⊗ ...
+
+This project builds:
+- |0⟩, |1⟩ basis states
+- Common gates: I, X, H
+- Kronecker product (tensor product)
+- Oracle matrix Uf
+- Statevector evolution and probability results
+
+---
+
+## Technologies Used
+
+### Language
+- Python 3.10+
+
+### Tools
+- Jupyter Notebook
+
+### Libraries
+- NumPy (main simulation library)
+- Matplotlib (optional plotting)
+
+---
+
+## Installation
+
+### Install dependencies
+Run in Jupyter or terminal:
+
+```bash
+pip install numpy matplotlib

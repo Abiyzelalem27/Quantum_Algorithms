@@ -1,0 +1,9 @@
+README.md
+pyproject.toml
+src/quantum_algorithms/_init_.py
+src/quantum_algorithms/operator.py
+src/quantum_algorithms_sim.egg-info/PKG-INFO
+src/quantum_algorithms_sim.egg-info/SOURCES.txt
+src/quantum_algorithms_sim.egg-info/dependency_links.txt
+src/quantum_algorithms_sim.egg-info/requires.txt
+src/quantum_algorithms_sim.egg-info/top_level.txt
