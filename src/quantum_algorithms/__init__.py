@@ -1,7 +1,5 @@
 
 
-
-
 from .operator import (
     I,
     CNOT,
@@ -24,11 +22,17 @@ from .operator import (
     born_rule_probs,
     sample_from_probs,
     measure_pure_state,
+    initial_state,
+    apply_hadamards,
+    measurement_density_matrix,
+    sample_probs,
+    oracle_function, 
     deutsch_jozsa,
-    run_dj,
-measurement_density_matrix,
-
-    
+    f_constant_0,
+    f_constant_1,
+    f_balanced_parity,
+    measure_probs_first_n,
+    sample_measurements_input,
 )
 
 __all__ = [
@@ -52,8 +56,16 @@ __all__ = [
     "projectors",
     "born_rule_probs",
     "sample_from_probs",
+    "initial_state",
+    "apply_hadamards",
     "measure_pure_state",
-    "deutsch_jozsa",
-    "run_dj",
     "measurement_density_matrix",
-]
+    "sample_probs",
+    "oracle_function",
+    "deutsch_jozsa",
+    "f_constant_0",
+    "f_constant_1",
+    "f_balanced_parity",
+    "measure_probs_first_n",
+    "sample_measurements_input",
+] 

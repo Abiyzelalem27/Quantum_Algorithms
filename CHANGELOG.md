@@ -20,3 +20,7 @@ All notable changes to this project will be documented in this file.
 ### Notes
 - Simulations are implemented using NumPy
 - Matplotlib can be used for visualization (optional)
+
+ ## [0.1.0] - 2026-02-18
+### Added
+Simulate Deutsch–Jozsa Algorithms 

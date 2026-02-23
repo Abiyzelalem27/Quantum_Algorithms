@@ -2,6 +2,7 @@
 
 
 import numpy as np
+from collections import Counter
 I = np.array([[1, 0],
               [0, 1]], dtype=complex)
 X = np.array([[0, 1],
@@ -264,35 +265,107 @@ def measurement_density_matrix(rho, projectors):
 
     return outcome, rho_post, probs
 
+def initial_state(n):
+    """prepared the intitial state"""
+    total = n + 1
+    state = np.zeros(2**total, dtype=complex)
+    state[1] = 1.0  # basis index where ancilla=1 and inputs all zero
+    return state
 
-def deutsch_jozsa(n, oracle_type):
+def apply_hadamards(state, total_qubits):
+    """apply hadamards on the prepared initial state to create a superposition"""
+    H_full = U_N_qubits([H] * total_qubits)
+    return H_full.dot(state)
+
+def sample_probs(probs, shots, rng=None):
+    """Sample measurement outcomes based on a given probability distribution.
+    
+    It draws a specified number of random samples ("shots") according to the
+    probability distribution `probs`,
+
     """
-    n : number of input qubits
-    oracle_type : 'constant' or 'balanced'
+    if rng is None:
+        rng = np.random.default_rng()
+    outcomes = rng.choice(len(probs), size=shots, p=probs)
+    return Counter(outcomes)
+    
+
+def oracle_function(f, n):
     """
-    qc = QuantumCircuit(n + 1, n)
-    qc.x(n)
-    qc.h(range(n + 1))
+    Build a function that applies the oracle operator U_f to the statevector of n+1 qubits.
+    The oracle implements the transformation:
+        U_f |x⟩|y⟩ = |x⟩|y ⊕ f(x)⟩
+    Parameters
+        f : Boolean function f(x) -> {0, 1} for x in [0, 2^n)
+        n : Number of input qubits
+    """
 
-    if oracle_type == "constant":
-        pass
+    def apply_Uf(state):
+        new = np.copy(state)
+        for x in range(2**n):
+            fx = f(x)
+            idx0 = (x << 1) | 0
+            idx1 = (x << 1) | 1
+            if fx == 1:
+                # swap amplitudes between ancilla 0 and 1 for this x
+                new[idx0], new[idx1] = state[idx1], state[idx0]
+        return new   
 
-    elif oracle_type == "balanced":
-        for i in range(n):
-            qc.cx(i, n)
-    else:
-        raise ValueError("oracle_type must be 'constant' or 'balanced'")
+    return apply_Uf  
 
-    qc.h(range(n))
-    qc.measure(range(n), range(n))
-    return qc
+def deutsch_jozsa(n, f):
+    """
+    The Deutsch–Jozsa Algorithm (DJA).Determine if the Boolean function f(x) : {0,1}^n -> {0,1}
+        is constant or balanced using a single oracle query.
+    Steps:
+        1. Prepare |0...0>|1>
+        2. Apply Hadamard to all qubits
+        3. Apply oracle U_f
+        4. Apply Hadamard to the first n qubits
+        5. Measure first n qubits
+    Returns:
+        The final statevector (or measurement outcome)
+    """
+    total_qubits = n + 1
+    state = initial_state(n)
+    state = apply_hadamards(state, total_qubits)
+    U = oracle_function(f, n)
+    state = U(state)
+    H_first_n = U_N_qubits([H] * n + [I])
+    state = H_first_n @ state
+    return state  
 
-def run_dj(n, oracle_type, shots):
-    simulator = AerSimulator()
-    qc = deutsch_jozsa(n, oracle_type)
+# CONSTANT functions
+def f_constant_0(x):
+    return 0
 
-    tqc = transpile(qc, simulator)
-    result = simulator.run(tqc, shots=shots).result()
+def f_constant_1(x):
+    return 1
 
-    return result.get_counts() 
-   s 
+# BALANCED functions
+def f_balanced_parity(x):
+    return x % 2  # 0 for even, 1 for odd 
+
+def measure_probs_first_n(state, n):
+    """Compute prob distribution over first n qubits (sum over ancilla)."""
+    probs = np.zeros(2**n)
+    for x in range(2**n):
+        # Apply bitwise operations to find the correct index for each state
+        idx0 = (x << 1) | 0  # ancilla = 0
+        idx1 = (x << 1) | 1  # ancilla = 1
+        probs[x] = np.abs(state[idx0])**2 + np.abs(state[idx1])**2
+    return probs 
+
+def sample_measurements_input(state, n, shots, rng=None):
+    """
+    Sample `shots` measurement outcomes from the full-register distribution given by `state`,
+    then aggregate counts over the input register (i.e., ignore ancilla).
+    Returns Counter keyed by input integer (0..2^n-1).
+    """
+    if rng is None:
+        rng = np.random.default_rng()
+    probs_full = np.abs(state)**2
+    probs_full = probs_full / probs_full.sum()
+    samples = rng.choice(len(probs_full), size=shots, p=probs_full)
+    input_samples = samples >> 1   # removes ancilla qubit (shift right)
+    return Counter(input_samples) 
