@@ -2,9 +2,6 @@
 
 from .operator import (
     I,
-    CNOT,
-    S,
-    T,
     Z,
     Y,
     X,
@@ -33,13 +30,14 @@ from .operator import (
     f_balanced_parity,
     measure_probs_first_n,
     sample_measurements_input,
+    deutsch_jozsa_error1,
+    deutsch_jozsa_error2,
+    deutsch_jozsa_error3,
+    deutsch_jozsa_error4,
 )
 
 __all__ = [
     "I",
-    "CNOT",
-    "S",
-    "T",
     "rotation_gate",
     "Z",
     "Y",
@@ -68,4 +66,8 @@ __all__ = [
     "f_balanced_parity",
     "measure_probs_first_n",
     "sample_measurements_input",
+    "deutsch_jozsa_error1",
+    "deutsch_jozsa_error2",
+    "deutsch_jozsa_error3",
+    "deutsch_jozsa_error4",
 ] 
