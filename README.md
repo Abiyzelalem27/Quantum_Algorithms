@@ -1,6 +1,6 @@
 
 
-# Quantum Algorithms Simulation (NumPy)
+# Quantum Algorithms 
 
 This repository is a learning and simulation project for **Quantum Algorithms** using **Python + NumPy**.
 
