@@ -1,4 +1,5 @@
 
+
 import numpy as np
 from collections import Counter
 I = np.array([[1, 0],
@@ -315,6 +316,46 @@ def sample_measurements_input(state, n, shots, rng=None):
     input_samples = samples >> 1   # removes ancilla qubit (shift right)
     return Counter(input_samples) 
 
+def bloch_vector(rho):
+    """
+    Compute the Bloch vector (rX, rY, rZ) for a single-qubit density matrix rho.
+    
+    r_J = Tr(rho * J), J = X, Y, Z
+    """
+    rX = np.real(np.trace(rho @ X))
+    rY = np.real(np.trace(rho @ Y))
+    rZ = np.real(np.trace(rho @ Z))
+    return np.array([rX, rY, rZ])
+
+
+def bloch_visualization(channel_kraus_ops, n_samples=1000, seed=None):
+    """
+    Visualize the effect of a single-qubit quantum channel on the Bloch sphere.
+
+    Parameters
+    ----------
+    channel_kraus_ops : list of np.ndarray
+        Kraus operators defining the quantum channel.
+    n_samples : int, optional
+        Number of random pure states to sample (default 1000).
+    seed : int or None, optional
+        Random seed for reproducibility.
+
+    Returns
+    -------
+    None
+        Displays a Bloch sphere plot with transformed states.
+    """
+    rng = np.random.default_rng(seed)
+    bloch_vectors_out = np.zeros((n_samples, 3))
+
+    for i in range(n_samples):
+        psi = random_pure_state(rng)
+        rho = dm(psi)
+        rho_after = apply_channel(rho, channel_kraus_ops)
+        bloch_vectors_out[i, :] = bloch_vector(rho_after)
+
+
 def apply_kraus(rho, kraus_ops):
     """
     Apply a quantum noise channel using Kraus operators
@@ -327,6 +368,23 @@ def apply_kraus(rho, kraus_ops):
         out += E @ rho @ E.conj().T
 
     return out
+
+
+def apply_channel(rho_input, kraus_ops):
+    """
+    Applies a quantum channel to a single-qubit density matrix.
+
+    Parameters:
+        rho_input : np.ndarray
+            2x2 density matrix of a qubit
+        kraus_ops : list of np.ndarray
+            List of Kraus operators defining the channel
+
+    Returns:
+        rho_out : np.ndarray
+            Density matrix after the channel
+    """
+    return apply_kraus(rho_input, kraus_ops)
 
 def bit_flip_kraus(p):
     """
@@ -410,22 +468,16 @@ def depolarizing_kraus(p):
     return [E0, E1, E2, E3]
 
 def ket0():
-    """
-    Return the computational basis state |0⟩.
-
-    |0⟩ = [1, 0]^T
-    """
     return np.array([1, 0], dtype=complex)
 
-
 def ket1():
-    """
-    Return the computational basis state |1⟩.
-
-    |1⟩ = [0, 1]^T
-    """
     return np.array([0, 1], dtype=complex)
 
+def ket_plus():
+    return (ket0() + ket1()) / np.sqrt(2)
+
+def ket_minus():
+    return (ket0() - ket1()) / np.sqrt(2)
 
 def dm(psi):
     """
@@ -433,6 +485,7 @@ def dm(psi):
 
     ρ = |psi⟩⟨psi|
     """
+    psi = psi / np.linalg.norm(psi)
     return np.outer(psi, psi.conj())
 
 
@@ -498,7 +551,7 @@ def deutsch_jozsa(n, f):
         f : function
             Oracle function f(x) -> 0 or 1
     Returns:
-        state : np.ndarray
+        state :
             Final state vector after algorithm  
     """
     total_qubits = n + 1
@@ -513,7 +566,7 @@ def deutsch_jozsa(n, f):
 def deutsch_jozsa_error1(n, f, theta, target_qubit, axis):
     """
     Deutsch–Jozsa algorithm with a single-qubit rotation error
-    applied **before the first Hadamard gates**.
+    applied before the first Hadamard gates.
 
     Parameters:
         theta : float
@@ -523,7 +576,7 @@ def deutsch_jozsa_error1(n, f, theta, target_qubit, axis):
         axis : tuple
             Rotation axis vector (nx, ny, nz)
     Returns:
-        state : np.ndarray
+        state : 
             Final state vector after algorithm  
     """
     total_qubits = n + 1
@@ -588,3 +641,122 @@ def deutsch_jozsa_error4(n, f, theta, target_qubit, axis):
     state = U_one_gate(R, target_qubit, total_qubits) @ state
 
     return state
+
+def encode_3_qubit_bit_flip_code(psi):
+    """
+    Encode a single qubit state into the 3-qubit bit-flip code.
+    """
+    
+    psi = np.kron(psi, np.kron(ket0(), ket0()))
+    CNOT12 = controlled_gate(X, 0, 1, 3)
+    CNOT13 = controlled_gate(X, 0, 2, 3)
+    psi = CNOT13 @ CNOT12 @ psi
+    
+    return psi 
+
+def syndrome_measurement(psi):
+    """Measure parity checks Z1Z2 and Z2Z3"""
+    Z1Z2 = np.kron(Z, Z)
+    Z1Z2 = np.kron(Z1Z2, I)  # qubits 1 and 2
+
+    Z2Z3 = np.kron(I, np.kron(Z, Z))  # qubits 2 and 3
+
+    s1 = np.vdot(psi, Z1Z2 @ psi).real
+    s2 = np.vdot(psi, Z2Z3 @ psi).real
+
+    # Convert to +1/-1
+    s1 = 1 if s1 > 0 else -1
+    s2 = 1 if s2 > 0 else -1
+
+    return (s1, s2)
+
+
+def correct_bit_flip(psi):
+    """
+    Correct a single bit-flip using the syndrome.
+
+    Args:
+        psi: encoded 3-qubit state vector
+
+    Returns:
+        Corrected 3-qubit state vector
+    """
+    s1, s2 = syndrome_measurement(psi)
+    
+    if (s1, s2) == (1, 1):
+        return psi
+    elif (s1, s2) == (-1, 1):
+        return np.kron(X, np.kron(I, I)) @ psi
+    elif (s1, s2) == (-1, -1):
+        return np.kron(I, np.kron(X, I)) @ psi
+    elif (s1, s2) == (1, -1):
+        return np.kron(I, np.kron(I, X)) @ psi
+    else:
+        raise ValueError("Invalid syndrome") 
+
+
+import numpy as np
+
+def bit_flip_channel_3qubits(psi, p):
+    """
+    Apply the bit-flip channel independently to all three qubits.
+
+    Args:
+        psi : 8x1 vector (encoded 3-qubit state)
+        p   : probability of bit-flip on each qubit
+
+    Returns:
+        rho_out : 8x1 vector after the bit-flip channel (assuming pure state evolution)
+    """
+    # Single-qubit Kraus operators
+    E0 = np.sqrt(1 - p) * I
+    E1 = np.sqrt(p) * X  
+
+    # Generate all 8 three-qubit Kraus operator
+    kraus_ops = []
+    for k0 in [E0, E1]:
+        for k1 in [E0, E1]:
+            for k2 in [E0, E1]:
+                kraus_ops.append(np.kron(k0, np.kron(k1, k2)))
+                
+    rho_out = np.zeros_like(psi)
+    for K in kraus_ops:
+        rho_out += K @ psi
+
+    return rho_out 
+
+# helper function for simulating measurements
+
+def doMeasurement(rho, projectors): # inputs: state rho, list of projectors on the subspaces corresponding to different measurement outcomes
+    pvec = [np.trace(rho @ pi) for pi in projectors]                      # calculate the probability of each outcome
+    thresholds = np.cumsum(pvec)                                          # calculate thresholds for outcomes
+    r = np.random.rand()                                                  # generate random number between 0 and 1
+    indOutcome = np.sum(thresholds < r)                                   # randomly choose an outcome
+    postMeasState = projectors[indOutcome] @ rho @ projectors[indOutcome] # unnormalized post-measurement state
+    return [indOutcome , postMeasState/pvec[indOutcome]] # outputs: outcome of the measurement and post-measurement state
+
+I8 = np.eye(8, dtype=complex)
+
+X1 = np.kron(X, np.kron(I, I))
+X2 = np.kron(I, np.kron(X, I))
+X3 = np.kron(I, np.kron(I, X))
+
+def recovery_bit_flip(rho, syndrome):
+    """
+    Apply recovery operation depending on syndrome outcome
+    """
+    recovery_ops = [I8, X1, X2, X3]
+    M = recovery_ops[syndrome]
+    return M @ rho @ M.conj().T
+
+Z1 = np.kron(Z, np.kron(I, I))
+Z2 = np.kron(I, np.kron(Z, I))
+Z3 = np.kron(I, np.kron(I, Z))
+
+def recovery_phase_flip(rho, syndrome):
+    """
+    Apply recovery for phase-flip code
+    """
+    recovery_ops = [I8, Z1, Z2, Z3]
+    M = recovery_ops[syndrome]
+    return M @ rho @ M.conj().T 
