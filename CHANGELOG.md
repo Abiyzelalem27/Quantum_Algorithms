@@ -17,10 +17,12 @@ All notable changes to this project will be documented in this file.
 - Added pyproject.toml
 - Added CHANGELOG.md
 
-### Notes
-- Simulations are implemented using NumPy
-- Matplotlib can be used for visualization (optional)
-
- ## [0.1.0] - 2026-02-18
+ # 2026-02-18
 ### Added
 Simulate Deutsch–Jozsa Algorithms 
+
+## 2026-03-04
+### Added
+- Implemented noisy quantum gate simulation
+- Added Bloch sphere visualization
+- Added rotation channel using Kraus operators
