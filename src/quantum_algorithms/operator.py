@@ -775,4 +775,87 @@ def recovery_phase_flip(rho, syndrome):
     """
     recovery_ops = [I8, Z1, Z2, Z3]
     M = recovery_ops[syndrome]
-    return M @ rho @ M.conj().T 
+    return M @ rho @ M.conj().T
+
+def buildSparseGateSingle(n, i, gate):
+    sgate = sparse.csr_matrix(gate)
+    return sparse.kron(sparse.kron(sparse.identity(2**i), sgate), sparse.identity(2**(n-i-1)))
+
+def buildSparseCNOT(n, ic, it):
+    P0ic = buildSparseGateSingle(n, ic, P0)
+    P1ic = buildSparseGateSingle(n, ic, P1)
+    Xit  = buildSparseGateSingle(n, it, X)
+    return P0ic + P1ic @ Xit
+
+
+# helper function for initializing all qubits in state zero
+def initRegisterPsi(n):
+    return basisvec(n,0)
+
+def initRegisterRho(n):
+    ini = basisvec(n,0)
+    return np.outer(ini.conj(),ini)
+
+def bit_flip_kraus_nqubits(p, n):
+    """
+    Generate Kraus operators for a bit-flip channel applied independently
+    to each qubit in an n-qubit system.
+
+    Parameters
+    ----------
+    p : float
+        Bit-flip probability for each qubit (0 <= p <= 1)
+    n_qubits : int
+        Number of qubits
+
+    Returns
+    -------
+    kraus_ops : list of np.ndarray
+        List of 2^n_qubits Kraus operators (each 2^n x 2^n)
+    """
+
+    single_qubit_ops = [np.sqrt(1 - p) * I, np.sqrt(p) * X]
+    kraus_ops = [np.array([[1]], dtype=complex)] 
+
+    for _ in range(n):
+        new_ops = []
+        for K in kraus_ops:
+            for E in single_qubit_ops:
+                new_ops.append(np.kron(K, E))
+        kraus_ops = new_ops
+
+    return kraus_ops
+    
+
+# Sparse helper functions
+def buildSparseGateSingle(n, i, gate):
+    return sparse.kron(sparse.kron(sparse.identity(2**i), gate), sparse.identity(2**(n-i-1)))
+
+def buildSparseCNOT(n, ic, it):
+    return buildSparseGateSingle(n, ic, P0) + buildSparseGateSingle(n, ic, P1) @ buildSparseGateSingle(n, it, X2)
+
+def dm_sparse(psi):
+    """Density matrix from state vector (sparse)"""
+    return psi @ psi.getH()
+
+def ket0_sparse(n=1):
+    """n-qubit |0>"""
+    return sparse.csr_matrix(np.array([[1], [0]], dtype=complex)) if n==1 else sparse.kron(ket0_sparse(), sparse.identity(2**(n-1), dtype=complex))
+
+# Multi-qubit bit-flip Kraus (sparse)
+def bit_flip_kraus_nqubits_sparse(p, n):
+    single_ops = [np.sqrt(1-p) * I, np.sqrt(p) * X]
+    # generate all combinations
+    kraus_ops = []
+    for combo in product(single_ops, repeat=n):
+        K = combo[0]
+        for E in combo[1:]:
+            K = sparse.kron(K, E)
+        kraus_ops.append(K)
+    return kraus_ops
+
+def apply_kraus_sparse(rho, kraus_ops):
+    rho_out = sparse.csr_matrix(rho.shape, dtype=complex)
+    for K in kraus_ops:
+        rho_out += K @ rho @ K.getH()
+    return rho_out 

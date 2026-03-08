@@ -60,6 +60,13 @@ from .operator import (
     doMeasurement,
     recovery_bit_flip,
     recovery_phase_flip,
+    bit_flip_kraus_nqubits,
+    apply_kraus_sparse,
+    buildSparseGateSingle,
+    buildSparseCNOT,
+    dm_sparse,
+    ket0_sparse,
+    bit_flip_kraus_nqubits_sparse, 
 )
 
 __all__ = [
@@ -122,4 +129,11 @@ __all__ = [
     "doMeasurement",
     "recovery_bit_flip",
     "recovery_phase_flip",
+    "bit_flip_kraus_nqubits",
+    "apply_kraus_sparse",
+    "buildSparseGateSingle",
+    "buildSparseCNOT",
+    "dm_sparse",
+    "ket0_sparse",
+    "bit_flip_kraus_nqubits_sparse",
 ]
