@@ -355,27 +355,45 @@ def bloch_visualization(channel_kraus_ops, n_samples=1000, seed=None):
         rho_after = apply_channel(rho, channel_kraus_ops)
         bloch_vectors_out[i, :] = bloch_vector(rho_after)
 
-
 def apply_kraus(rho, kraus_ops):
     """
-    Apply a quantum noise channel using Kraus operators
+    Apply a quantum channel to a density matrix using Kraus operators.
 
-    E(rho) = Σ_k (Ek rho Ek†)
+    Parameters
+    ----------
+    rho : np.ndarray
+        2x2 density matrix of a qubit
+    kraus_ops : list of np.ndarray
+        List of Kraus operators
+
+    Returns
+    -------
+    rho_out : np.ndarray
+        Density matrix after applying the channel
     """
-    out = np.zeros_like(rho, dtype=complex)
-
+    rho_out = np.zeros_like(rho, dtype=complex)
+    
     for E in kraus_ops:
-        out += E @ rho @ E.conj().T
+        rho_out += E @ rho @ E.conj().T  # E rho E†
+    
+    return rho_out 
 
-    return out
+def rotation_channel(p, R):
+    """
+    Random unitary single-qubit channel using rotation R.
 
+    Returns list of Kraus operators [M0, M1].
+    """
+    M0 = np.sqrt(1-p) * I
+    M1 = np.sqrt(p) * R
+    return [M0, M1]
 
-def apply_channel(rho_input, kraus_ops):
+def apply_channel(rho, kraus_ops):
     """
     Applies a quantum channel to a single-qubit density matrix.
 
     Parameters:
-        rho_input : np.ndarray
+        rho : np.ndarray
             2x2 density matrix of a qubit
         kraus_ops : list of np.ndarray
             List of Kraus operators defining the channel
@@ -384,8 +402,11 @@ def apply_channel(rho_input, kraus_ops):
         rho_out : np.ndarray
             Density matrix after the channel
     """
-    return apply_kraus(rho_input, kraus_ops)
-
+    rho_out = np.zeros_like(rho, dtype=complex)
+    for M in kraus_ops:
+        rho_out += M @ rho @ M.conj().T
+    return rho_out 
+    
 def bit_flip_kraus(p):
     """
     Bit flip channel (X noise).
@@ -694,9 +715,6 @@ def correct_bit_flip(psi):
     else:
         raise ValueError("Invalid syndrome") 
 
-
-import numpy as np
-
 def bit_flip_channel_3qubits(psi, p):
     """
     Apply the bit-flip channel independently to all three qubits.
@@ -724,8 +742,6 @@ def bit_flip_channel_3qubits(psi, p):
         rho_out += K @ psi
 
     return rho_out 
-
-# helper function for simulating measurements
 
 def doMeasurement(rho, projectors): # inputs: state rho, list of projectors on the subspaces corresponding to different measurement outcomes
     pvec = [np.trace(rho @ pi) for pi in projectors]                      # calculate the probability of each outcome
