@@ -20,4 +20,4 @@ All notable changes to this project will be documented in this file.
 ### Added
 - Implemented noisy quantum gate simulation
 - Added Bloch sphere visualization
-- Added rotation channel using Kraus operators
+- Added quantum channel using Kraus operators 

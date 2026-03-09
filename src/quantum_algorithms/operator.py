@@ -746,11 +746,11 @@ def bit_flip_channel_3qubits(psi, p):
     return rho_out 
 
 def doMeasurement(rho, projectors): # inputs: state rho, list of projectors on the subspaces corresponding to different measurement outcomes
-    pvec = [np.trace(rho @ pi) for pi in projectors]                      # calculate the probability of each outcome
-    thresholds = np.cumsum(pvec)                                          # calculate thresholds for outcomes
-    r = np.random.rand()                                                  # generate random number between 0 and 1
-    indOutcome = np.sum(thresholds < r)                                   # randomly choose an outcome
-    postMeasState = projectors[indOutcome] @ rho @ projectors[indOutcome] # unnormalized post-measurement state
+    pvec = [np.trace(rho @ pi) for pi in projectors]                      
+    thresholds = np.cumsum(pvec)                                         
+    r = np.random.rand()                                                  
+    indOutcome = np.sum(thresholds < r)                                   
+    postMeasState = projectors[indOutcome] @ rho @ projectors[indOutcome] 
     return [indOutcome , postMeasState/pvec[indOutcome]] # outputs: outcome of the measurement and post-measurement state
 
 I8 = np.eye(8, dtype=complex)
@@ -895,8 +895,8 @@ def single_qubit_channel_n_register(kraus_single, n, target):
 
     Parameters:
         kraus_single : list of 2x2 Kraus operators for the single qubit
-        n            : total number of qubits in the register
-        target       : index of qubit to apply the channel (0-based)
+        n: total number of qubits in the register
+        target: index of qubit to apply the channel (0-based)
 
     Returns:
         list of 2^n x 2^n Kraus operators acting on the full register

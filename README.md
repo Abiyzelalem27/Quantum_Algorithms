@@ -1,122 +1,35 @@
 
 
-# Quantum Algorithms 
+# Quantum Algorithms
 
-This repository is a learning and simulation project for **Quantum Algorithms** using **Python + NumPy**.
-
-The main goal of this project is to understand quantum computing concepts by building algorithms step-by-step
-using **linear algebra**, instead of using a ready-made quantum framework at the beginning.
+Quantum algorithms leverage the principles of **superposition**, **interference**, and **entanglement** to solve problems faster than classical algorithms in some cases.
 
 ---
 
-## Why this project?
+## 1) Deutsch Algorithm
+- Determines whether a function `f(x)` is **constant** or **balanced**  
+- Requires **only 1 quantum query** (oracle call)  
+- Demonstrates **quantum speedup** for this specific problem
 
-Quantum algorithms are based on:
-- **Superposition**
-- **Interference**
-- **Entanglement**
-- **Unitary gates**
-- **Oracle / Black-box functions**
-- **Measurement and probabilities**
+## 2) Deutsch–Jozsa Algorithm
+- Generalization of the Deutsch Algorithm for `n`-bit inputs  
+- Determines **constant vs balanced** functions with **1 quantum query**  
+- Shows **exponential quantum advantage** over classical algorithms
 
-Many beginners start directly with Qiskit or Cirq, but they don’t understand what happens inside.
-In this project, we simulate the algorithms manually using **NumPy matrices** to fully understand the math.
+## 3) Grover Search Algorithm
+- Quantum search algorithm for **unsorted databases**  
+- Provides **quadratic speedup** over classical search  
 
----
+## 4) Quantum Fourier Transform (QFT)
+- Quantum equivalent of the classical Fourier transform  
+- Used as a **subroutine** in many quantum algorithms  
 
-## What this project contains
+## 5) Quantum Phase Estimation (QPE)
+- Finds the **eigenvalue phase** of a unitary operator  
+- Essential for **Shor’s factoring algorithm** and other applications  
 
-This project includes notebooks and simulations for:
+## 6) Shor Factoring Algorithm
+- Quantum algorithm for **factoring large integers efficiently**  
+- Utilizes **QFT** and **phase estimation** techniques  
+- Demonstrates **exponential speedup** over classical factoring methods
 
-### 1) Deutsch Algorithm
-- Determine if a function `f(x)` is **constant** or **balanced**
-- Uses 1 quantum query (oracle call)
-
-### 2) Deutsch–Jozsa Algorithm
-- Generalization of Deutsch Algorithm for `n`-bit inputs
-- Determines constant vs balanced with 1 quantum query (quantum advantage)
-
-### 3) Grover Search Algorithm
-- Quantum search algorithm
-- Gives speedup over classical search
-
-### 4) Quantum Fourier Transform (QFT)
-- Quantum version of Fourier transform
-- Used inside many important algorithms
-
-### 5) Quantum Phase Estimation (QPE)
-- Finds eigenvalue phase of a unitary operator
-- Key part of Shor’s algorithm
-
-### 6) Shor Factoring Algorithm
-- Quantum algorithm for factoring large numbers
-- Uses QFT and phase estimation concepts
-
----
-
-## Oracle (Black Box) Concept
-
-In many quantum algorithms, the problem is hidden in an **oracle**.
-We do not know how the function works internally.
-We only query it as:
-
-- Input: `x`
-- Output: `f(x)`
-
-In quantum form, the oracle must be reversible, so we represent it using the unitary operator:
-
-Uf : |x, y⟩ → |x, y ⊕ f(x)⟩
-
-Where:
-- `x` is the input register
-- `y` is the ancilla (helper) qubit
-- `⊕` is XOR (mod 2 addition)
-
-The oracle is usually drawn as a black-box circuit block `Uf`.
-
----
-
-## Simulation Approach (NumPy)
-
-We simulate quantum circuits using matrices and vectors:
-
-- A **qubit state** is a vector (column vector)
-- A **gate** is a matrix
-- Applying a gate is matrix multiplication:
-
-|ψ_out⟩ = U |ψ_in⟩
-
-For multi-qubit gates, we use tensor product:
-
-U_total = U1 ⊗ U2 ⊗ ...
-
-This project builds:
-- |0⟩, |1⟩ basis states
-- Common gates: I, X, H
-- Kronecker product (tensor product)
-- Oracle matrix Uf
-- Statevector evolution and probability results
-
----
-
-## Technologies Used
-
-### Language
-- Python 3.10+
-
-### Tools
-- Jupyter Notebook
-
-### Libraries
-- NumPy (main simulation library)
-- Matplotlib (optional plotting)
-
----
-
-## Installation
-
-### Install dependencies
-Run in Jupyter or terminal:
-
-```bash
-pip install numpy matplotlib
