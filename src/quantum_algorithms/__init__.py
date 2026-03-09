@@ -15,6 +15,7 @@ from .operator import (
     U_one_gate,
     U_two_gates,
     rho,
+    normalize_state, 
     evolve,
     controlled_gate,
     projectors,
@@ -66,7 +67,9 @@ from .operator import (
     buildSparseCNOT,
     dm_sparse,
     ket0_sparse,
-    bit_flip_kraus_nqubits_sparse, 
+    bit_flip_kraus_nqubits_sparse,
+    depolarizing_kraus_nqubits,
+    single_qubit_channel_n_register, 
 )
 
 __all__ = [
@@ -80,10 +83,12 @@ __all__ = [
     "P1",
     "dm",
     "rotation_channel", 
+    "depolarizing_kraus_nqubits",
     "U_N_qubits",
     "U_one_gate",
     "U_two_gates",
     "rho",
+    "normalize_state",
     "evolve",
     "controlled_gate",
     "projectors",
@@ -136,4 +141,5 @@ __all__ = [
     "dm_sparse",
     "ket0_sparse",
     "bit_flip_kraus_nqubits_sparse",
+    "single_qubit_channel_n_register", 
 ]

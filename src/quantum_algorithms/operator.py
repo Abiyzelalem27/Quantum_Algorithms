@@ -2,6 +2,8 @@
 
 import numpy as np
 from collections import Counter
+import itertools
+
 I = np.array([[1, 0],
               [0, 1]], dtype=complex)
 X = np.array([[0, 1],
@@ -777,25 +779,6 @@ def recovery_phase_flip(rho, syndrome):
     M = recovery_ops[syndrome]
     return M @ rho @ M.conj().T
 
-def buildSparseGateSingle(n, i, gate):
-    sgate = sparse.csr_matrix(gate)
-    return sparse.kron(sparse.kron(sparse.identity(2**i), sgate), sparse.identity(2**(n-i-1)))
-
-def buildSparseCNOT(n, ic, it):
-    P0ic = buildSparseGateSingle(n, ic, P0)
-    P1ic = buildSparseGateSingle(n, ic, P1)
-    Xit  = buildSparseGateSingle(n, it, X)
-    return P0ic + P1ic @ Xit
-
-
-# helper function for initializing all qubits in state zero
-def initRegisterPsi(n):
-    return basisvec(n,0)
-
-def initRegisterRho(n):
-    ini = basisvec(n,0)
-    return np.outer(ini.conj(),ini)
-
 def bit_flip_kraus_nqubits(p, n):
     """
     Generate Kraus operators for a bit-flip channel applied independently
@@ -832,7 +815,7 @@ def buildSparseGateSingle(n, i, gate):
     return sparse.kron(sparse.kron(sparse.identity(2**i), gate), sparse.identity(2**(n-i-1)))
 
 def buildSparseCNOT(n, ic, it):
-    return buildSparseGateSingle(n, ic, P0) + buildSparseGateSingle(n, ic, P1) @ buildSparseGateSingle(n, it, X2)
+    return buildSparseGateSingle(n, ic, P0) + buildSparseGateSingle(n, ic, P1) @ buildSparseGateSingle(n, it, X)
 
 def dm_sparse(psi):
     """Density matrix from state vector (sparse)"""
@@ -854,8 +837,78 @@ def bit_flip_kraus_nqubits_sparse(p, n):
         kraus_ops.append(K)
     return kraus_ops
 
+def buildSparseGateSingle(n, i, gate):
+    sgate = sparse.csr_matrix(gate)
+    return sparse.kron(sparse.kron(sparse.identity(2**i), sgate), sparse.identity(2**(n-i-1)))
+
+def buildSparseCNOT(n, ic, it):
+    P0ic = buildSparseGateSingle(n, ic, P0)
+    P1ic = buildSparseGateSingle(n, ic, P1)
+    Xit  = buildSparseGateSingle(n, it, X)
+    return P0ic + P1ic @ Xit
+
+
+# helper function for initializing all qubits in state zero
+def initRegisterPsi(n):
+    return basisvec(n,0)
+
+def initRegisterRho(n):
+    ini = basisvec(n,0)
+    return np.outer(ini.conj(),ini)
+
 def apply_kraus_sparse(rho, kraus_ops):
     rho_out = sparse.csr_matrix(rho.shape, dtype=complex)
     for K in kraus_ops:
         rho_out += K @ rho @ K.getH()
     return rho_out 
+
+def depolarizing_kraus_nqubits(p, n):
+    """
+    Depolarizing channel for n qubits.
+
+    E(ρ) = (1-p)ρ + p * I/d
+
+    Kraus operators are tensor products of Pauli matrices.
+    Total number = 4^n
+    """
+    paulis = [I, X, Y, Z]
+    pauli_strings = list(itertools.product(paulis, repeat=n))
+    d = 2**n
+    kraus_ops = []
+
+    for P_string in pauli_strings:
+        P = P_string[0]
+        for op in P_string[1:]:
+            P = np.kron(P, op)
+        if np.array_equal(P, np.eye(d)):
+            coeff = np.sqrt(1 - (4**n - 1)*p/(4**n))
+        else:
+            coeff = np.sqrt(p/(4**n))
+        kraus_ops.append(coeff * P)
+
+    return kraus_ops
+    
+
+def single_qubit_channel_n_register(kraus_single, n, target):
+    """
+    Lift single-qubit Kraus operators to act on qubit 'target' in an n-qubit register.
+
+    Parameters:
+        kraus_single : list of 2x2 Kraus operators for the single qubit
+        n            : total number of qubits in the register
+        target       : index of qubit to apply the channel (0-based)
+
+    Returns:
+        list of 2^n x 2^n Kraus operators acting on the full register
+    """
+    kraus_n = []
+
+    for K in kraus_single:
+        full_op = np.array([[1]], dtype=complex)  
+        for qubit in range(n):
+            op = K if qubit == target else I
+            full_op = np.kron(full_op, op)
+        kraus_n.append(full_op)
+    
+    return kraus_n 
+
