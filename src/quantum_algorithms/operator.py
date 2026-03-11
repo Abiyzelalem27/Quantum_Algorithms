@@ -2,10 +2,12 @@
 
 import numpy as np
 from collections import Counter
-import itertools
+import itertools 
+from scipy import sparse 
 
 I = np.array([[1, 0],
               [0, 1]], dtype=complex)
+I8 = np.eye(8, dtype=complex)
 X = np.array([[0, 1],
               [1, 0]], dtype=complex)
 Y = np.array([[0, -1j],
@@ -18,6 +20,19 @@ P0 = np.array([[1, 0],
                [0, 0]], dtype=complex)
 P1 = np.array([[0, 0],
                [0, 1]], dtype=complex)
+
+# 3-qubit identity
+I8 = np.kron(np.kron(I,I),I)
+
+# Bit-flip operators
+X1 = np.kron(np.kron(X,I),I)   
+X2 = np.kron(np.kron(I,X),I)   
+X3 = np.kron(np.kron(I,I),X)   
+
+# Phase-flip operators
+Z1 = np.kron(np.kron(Z,I),I)   
+Z2 = np.kron(np.kron(I,Z),I)   
+Z3 = np.kron(np.kron(I,I),Z)   
 
 def projectors(dim):
     """
@@ -141,7 +156,7 @@ def controlled_gate(U, control, target, N):
     if control == target:
         raise ValueError("Control and target must be different")
 
-    # Operator acting on the subspace where control qubit is |0⟩
+    # Operator acting on the subspace where the control qubit is |0⟩
     P0_ops = [
         P0 if i == control else I
         for i in range(N)
@@ -155,15 +170,14 @@ def controlled_gate(U, control, target, N):
 
     return U_N_qubits(P0_ops) + U_N_qubits(P1_ops)
 
-    import numpy as np
-
-
 def normalize_state(psi):
-    """Normalize a pure state vector |psi>."""
+    """
+    Normalize a pure state vector |psi>.
+    """
     norm = np.linalg.norm(psi)
     if np.isclose(norm, 0):
         raise ValueError("State vector has zero norm.")
-    return psi / norm
+    return psi/norm 
 
 def born_rule_probs(rho, projectors):
     """
@@ -173,11 +187,8 @@ def born_rule_probs(rho, projectors):
     Returns a normalized probability vector.
     """
     probs = np.array([np.real(np.trace(Pi @ rho)) for Pi in projectors])
-
-    # safety: numeric cleanup + normalization
     probs = np.clip(probs, 0, 1)
     probs = probs / np.sum(probs)
-
     return probs
 
 
@@ -199,26 +210,77 @@ def measure_pure_state(psi, projectors):
     psi = normalize_state(psi)
     probs = born_probs_pure(psi, projectors)
     outcome = sample_from_probs(probs)
-
     Pk = projectors[outcome]
-
     psi_post_unnormalized = Pk @ psi
     norm_post = np.linalg.norm(psi_post_unnormalized)
-
     if np.isclose(norm_post, 0):
         raise ValueError("Outcome probability ~0 (numerical issue).")
-
     psi_post = psi_post_unnormalized / norm_post
-
+    
     return outcome, psi_post, probs
+    
+
+def doMeasurement(state, projectors):
+    """
+     Perform a projective measurement on a quantum state (pure or density matrix)
+    using a list of projectors.
+
+    Parameters:
+        state : np.ndarray
+            Pure state vector (1D) or density matrix (2D)
+        projectors : list of np.ndarray
+            List of projectors corresponding to measurement outcomes
+
+    Returns:
+        outcome : int
+            Index of the measured outcome
+        post_state : np.ndarray
+            Collapsed state after measurement (normalized)
+        probs : np.ndarray
+            Probability vector for each outcome
+    """
+    # Determine if pure state or density matrix
+    pure = state.ndim == 1
+
+    if pure:
+        # Normalize pure state
+        state = state / np.linalg.norm(state)
+        # Probabilities via Born rule
+        probs = np.array([np.real(np.vdot(state, P @ state)) for P in projectors])
+    else:
+        # Density matrix case
+        probs = np.array([np.real(np.trace(P @ state)) for P in projectors])
+
+    # Normalize probabilities (safety)
+    probs = np.clip(probs, 0, 1)
+    probs /= probs.sum()
+
+    # Sample outcome
+    outcome = np.random.choice(len(projectors), p=probs)
+    Pk = projectors[outcome]
+
+    # Collapse state
+    if pure:
+        post_unnorm = Pk @ state
+        norm_post = np.linalg.norm(post_unnorm)
+        if np.isclose(norm_post, 0):
+            raise ValueError("Outcome probability ~0 (numerical issue).")
+        post_state = post_unnorm / norm_post
+    else:
+        post_state = Pk @ state @ Pk
+        denom = np.trace(post_state)
+        if np.isclose(denom, 0):
+            raise ValueError("Outcome probability ~0 (numerical issue).")
+        post_state = post_state / denom
+    return outcome, post_state, probs
 
 def measurement_density_matrix(rho, projectors):
     """
-    Perform measurement using GIVEN projectors.
+    Perform measurement using the given projectors.
 
     Args:
-        rho (np.ndarray): density matrix
-        projectors (list[np.ndarray]): measurement projectors P_i
+        rho : density matrix
+        projectors: measurement projectors P_i
 
     Returns:
         outcome (int)
@@ -227,32 +289,33 @@ def measurement_density_matrix(rho, projectors):
     """
     probs = born_rule_probs(rho, projectors)
     outcome = sample_from_probs(probs)
-
     Pk = projectors[outcome]
     numerator = Pk @ rho @ Pk
     denom = np.trace(numerator)
-
     if np.isclose(denom, 0):
         raise ValueError("Outcome probability ~0 (numerical issue).")
-
     rho_post = numerator / denom
-
     return outcome, rho_post, probs
 
 def initial_state(n):
-    """prepared the intitial state"""
+    """
+    Prepared the initial state
+    """
     total = n + 1
     state = np.zeros(2**total, dtype=complex)
     state[1] = 1.0  # basis index where ancilla=1 and inputs all zero
     return state
 
 def apply_hadamards(state, total_qubits):
-    """apply hadamards on the prepared initial state to create a superposition"""
+    """
+    Apply Hadamards gate on the prepared initial state to create a superposition.
+    """
     H_full = U_N_qubits([H] * total_qubits)
     return H_full.dot(state)
 
 def sample_probs(probs, shots, rng=None):
-    """Sample measurement outcomes based on a given probability distribution.
+    """
+    Sample measurement outcomes based on a given probability distribution.
     
     It draws a specified number of random samples ("shots") according to the
     probability distribution `probs`,
@@ -335,7 +398,7 @@ def bloch_visualization(channel_kraus_ops, n_samples=1000, seed=None):
     Visualize the effect of a single-qubit quantum channel on the Bloch sphere.
 
     Parameters
-    ----------
+    
     channel_kraus_ops : list of np.ndarray
         Kraus operators defining the quantum channel.
     n_samples : int, optional
@@ -344,7 +407,6 @@ def bloch_visualization(channel_kraus_ops, n_samples=1000, seed=None):
         Random seed for reproducibility.
 
     Returns
-    -------
     None
         Displays a Bloch sphere plot with transformed states.
     """
@@ -362,14 +424,14 @@ def apply_kraus(rho, kraus_ops):
     Apply a quantum channel to a density matrix using Kraus operators.
 
     Parameters
-    ----------
+    
     rho : np.ndarray
         2x2 density matrix of a qubit
     kraus_ops : list of np.ndarray
         List of Kraus operators
 
     Returns
-    -------
+    
     rho_out : np.ndarray
         Density matrix after applying the channel
     """
@@ -433,7 +495,6 @@ def phase_flip_kraus(p):
     E0 = np.sqrt(1 - p) * I
     E1 = np.sqrt(p) * Z
     return [E0, E1]
-
 
 def amplitude_damping_kraus(gamma):
     """
@@ -508,7 +569,7 @@ def dm(psi):
 
     ρ = |psi⟩⟨psi|
     """
-    psi = psi / np.linalg.norm(psi)
+    psi = psi/np.linalg.norm(psi)
     return np.outer(psi, psi.conj())
 
 
@@ -560,7 +621,7 @@ def apply_bitflips(state, p):
 
 def deutsch_jozsa(n, f):
     """
-    Deutsch–Jozsa Algorithm (DJA).if the Boolean function f(x) : {0,1}^n -> {0,1}
+    Deutsch–Jozsa Algorithm the Boolean function f(x) : {0,1}^n -> {0,1}
         is constant or balanced using a single oracle query.
     Steps:
         1. Prepare |0...0>|1>
@@ -694,6 +755,37 @@ def syndrome_measurement(psi):
     return (s1, s2)
 
 
+def syndrome_measurement_phase_flip(psi):
+    """
+    Measure X parity checks for phase-flip code: X1X2, X2X3
+    """
+    X1X2 = np.kron(np.kron(X,X), I)
+    X2X3 = np.kron(np.kron(I,X), X)
+    
+    s1 = 1 if np.vdot(psi, X1X2 @ psi).real > 0 else -1
+    s2 = 1 if np.vdot(psi, X2X3 @ psi).real > 0 else -1
+    
+    return (s1, s2) 
+    
+def correct_phase_flip(psi):
+    """
+    Correct a single phase-flip using the 3-qubit phase-flip code.
+    Returns corrected 3-qubit state.
+    """
+    s1,s2 = syndrome_measurement(psi)
+    
+    # Map syndromes to Z corrections
+    if (s1,s2) == (1,1):
+        return psi          
+    elif (s1,s2) == (-1,1):
+        return Z1 @ psi      
+    elif (s1,s2) == (-1,-1):
+        return Z2 @ psi      
+    elif (s1,s2) == (1,-1):
+        return Z3 @ psi      
+    else:
+        raise ValueError("Invalid syndrome")
+
 def correct_bit_flip(psi):
     """
     Correct a single bit-flip using the syndrome.
@@ -709,11 +801,11 @@ def correct_bit_flip(psi):
     if (s1, s2) == (1, 1):
         return psi
     elif (s1, s2) == (-1, 1):
-        return np.kron(X, np.kron(I, I)) @ psi
+        return X1@ psi
     elif (s1, s2) == (-1, -1):
-        return np.kron(I, np.kron(X, I)) @ psi
+        return X2@ psi
     elif (s1, s2) == (1, -1):
-        return np.kron(I, np.kron(I, X)) @ psi
+        return X3@ psi
     else:
         raise ValueError("Invalid syndrome") 
 
@@ -744,41 +836,7 @@ def bit_flip_channel_3qubits(psi, p):
         rho_out += K @ psi
 
     return rho_out 
-
-def doMeasurement(rho, projectors): # inputs: state rho, list of projectors on the subspaces corresponding to different measurement outcomes
-    pvec = [np.trace(rho @ pi) for pi in projectors]                      
-    thresholds = np.cumsum(pvec)                                         
-    r = np.random.rand()                                                  
-    indOutcome = np.sum(thresholds < r)                                   
-    postMeasState = projectors[indOutcome] @ rho @ projectors[indOutcome] 
-    return [indOutcome , postMeasState/pvec[indOutcome]] # outputs: outcome of the measurement and post-measurement state
-
-I8 = np.eye(8, dtype=complex)
-
-X1 = np.kron(X, np.kron(I, I))
-X2 = np.kron(I, np.kron(X, I))
-X3 = np.kron(I, np.kron(I, X))
-
-def recovery_bit_flip(rho, syndrome):
-    """
-    Apply recovery operation depending on syndrome outcome
-    """
-    recovery_ops = [I8, X1, X2, X3]
-    M = recovery_ops[syndrome]
-    return M @ rho @ M.conj().T
-
-Z1 = np.kron(Z, np.kron(I, I))
-Z2 = np.kron(I, np.kron(Z, I))
-Z3 = np.kron(I, np.kron(I, Z))
-
-def recovery_phase_flip(rho, syndrome):
-    """
-    Apply recovery for phase-flip code
-    """
-    recovery_ops = [I8, Z1, Z2, Z3]
-    M = recovery_ops[syndrome]
-    return M @ rho @ M.conj().T
-
+    
 def bit_flip_kraus_nqubits(p, n):
     """
     Generate Kraus operators for a bit-flip channel applied independently
@@ -836,10 +894,6 @@ def bit_flip_kraus_nqubits_sparse(p, n):
             K = sparse.kron(K, E)
         kraus_ops.append(K)
     return kraus_ops
-
-def buildSparseGateSingle(n, i, gate):
-    sgate = sparse.csr_matrix(gate)
-    return sparse.kron(sparse.kron(sparse.identity(2**i), sgate), sparse.identity(2**(n-i-1)))
 
 def buildSparseCNOT(n, ic, it):
     P0ic = buildSparseGateSingle(n, ic, P0)
@@ -912,3 +966,50 @@ def single_qubit_channel_n_register(kraus_single, n, target):
     
     return kraus_n 
 
+def recovery_bit_flip(rho, syndrome):
+    """
+    Apply the recovery operation for the 3-qubit bit-flip code.
+    
+    Parameters:
+    - rho : 8x8 density matrix
+    - syndrome : int (0=no error, 1=qubit1, 2=qubit2, 3=qubit3)
+    
+    Returns:
+    - corrected density matrix
+    """
+    recovery_ops = [I8, X1, X2, X3]
+    M = recovery_ops[syndrome]
+    return M @ rho @ M.conj().T
+
+def recovery_phase_flip(rho, syndrome):
+    """
+    Apply the recovery operation for the 3-qubit phase-flip code.
+    
+    Parameters:
+    - rho: 8x8 density matrix
+    - syndrome: int (0=no error, 1=qubit1, 2=qubit2, 3=qubit3)
+    
+    Returns:
+    - corrected_state: 8x8 density matrix after applying Z correction
+    """
+    recovery_ops = [I8, Z1, Z2, Z3]
+    M = recovery_ops[syndrome]
+    return M @ rho @ M.conj().T 
+
+def encode_3_qubit_phase_flip_code(psi):
+    """
+    Encode a 1-qubit state |psi> = [alpha, beta] 
+    into the 3-qubit phase-flip code: 
+        |0_L> = |+++>, |1_L> = |--->
+    
+    Returns 8-dimensional encoded state
+    """
+    alpha, beta = psi
+    
+    # Logical 3-qubit states using the ket_plus / ket_minus functions
+    zero_L = np.kron(ket_plus(), np.kron(ket_plus(), ket_plus()))
+    one_L  = np.kron(ket_minus(), np.kron(ket_minus(), ket_minus()))
+    
+    # Encoded state
+    encoded = alpha * zero_L + beta * one_L
+    return encoded 
