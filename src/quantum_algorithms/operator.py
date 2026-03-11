@@ -755,17 +755,6 @@ def syndrome_measurement(psi):
     return (s1, s2)
 
 
-def syndrome_measurement_phase_flip(psi):
-    """
-    Measure X parity checks for phase-flip code: X1X2, X2X3
-    """
-    X1X2 = np.kron(np.kron(X,X), I)
-    X2X3 = np.kron(np.kron(I,X), X)
-    
-    s1 = 1 if np.vdot(psi, X1X2 @ psi).real > 0 else -1
-    s2 = 1 if np.vdot(psi, X2X3 @ psi).real > 0 else -1
-    
-    return (s1, s2) 
     
 def correct_phase_flip(psi):
     """
@@ -1012,4 +1001,26 @@ def encode_3_qubit_phase_flip_code(psi):
     
     # Encoded state
     encoded = alpha * zero_L + beta * one_L
-    return encoded 
+    return encoded
+
+def syndrome_measurement_bit_flip(psi):
+    """Measure parity checks Z1Z2 and Z2Z3"""
+    Z1Z2 = np.kron(np.kron(Z,Z), I)
+    Z2Z3 = np.kron(np.kron(I,Z), Z)
+    
+    s1 = 1 if np.vdot(psi, Z1Z2 @ psi).real > 0 else -1
+    s2 = 1 if np.vdot(psi, Z2Z3 @ psi).real > 0 else -1
+
+    return (s1, s2)
+
+def syndrome_measurement_phase_flip(psi):
+    """
+    Measure X parity checks for phase-flip code: X1X2, X2X3
+    """
+    X1X2 = np.kron(np.kron(X,X), I)
+    X2X3 = np.kron(np.kron(I,X), X)
+    
+    s1 = 1 if np.vdot(psi, X1X2 @ psi).real > 0 else -1
+    s2 = 1 if np.vdot(psi, X2X3 @ psi).real > 0 else -1
+    
+    return (s1, s2) 
