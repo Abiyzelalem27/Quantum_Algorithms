@@ -612,13 +612,6 @@ def E1_rho(psi, p):
     rho = dm(psi)
     return (1 - p) * rho + p * (X @ rho @ X)
 
-def apply_bitflips(state, p):
-    noisy = state.copy()
-    for i in range(3):  # 3-qubit repetition
-        if np.random.rand() < p:
-            noisy = apply_X(noisy, i)  # your X-on-qubit-i function
-    return noisy
-
 def deutsch_jozsa(n, f):
     """
     Deutsch–Jozsa Algorithm the Boolean function f(x) : {0,1}^n -> {0,1}
