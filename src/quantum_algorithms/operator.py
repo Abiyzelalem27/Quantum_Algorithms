@@ -4,6 +4,10 @@ import numpy as np
 from collections import Counter
 import itertools 
 from scipy import sparse 
+import scipy
+import matplotlib.pyplot as plt 
+import math 
+
 
 I = np.array([[1, 0],
               [0, 1]], dtype=complex)
@@ -945,7 +949,6 @@ def single_qubit_channel_n_register(kraus_single, n, target):
             op = K if qubit == target else I
             full_op = np.kron(full_op, op)
         kraus_n.append(full_op)
-    
     return kraus_n 
 
 def recovery_bit_flip(rho, syndrome):
@@ -953,9 +956,8 @@ def recovery_bit_flip(rho, syndrome):
     Apply the recovery operation for the 3-qubit bit-flip code.
     
     Parameters:
-    - rho : 8x8 density matrix
-    - syndrome : int (0=no error, 1=qubit1, 2=qubit2, 3=qubit3)
-    
+      rho : 8x8 density matrix
+      syndrome : int (0=no error, 1=qubit1, 2=qubit2, 3=qubit3)
     Returns:
     - corrected density matrix
     """
@@ -966,11 +968,9 @@ def recovery_bit_flip(rho, syndrome):
 def recovery_phase_flip(rho, syndrome):
     """
     Apply the recovery operation for the 3-qubit phase-flip code.
-    
     Parameters:
-    - rho: 8x8 density matrix
-    - syndrome: int (0=no error, 1=qubit1, 2=qubit2, 3=qubit3)
-    
+     rho: 8x8 density matrix
+     syndrome: int (0=no error, 1=qubit1, 2=qubit2, 3=qubit3)
     Returns:
     - corrected_state: 8x8 density matrix after applying Z correction
     """
@@ -983,15 +983,12 @@ def encode_3_qubit_phase_flip_code(psi):
     Encode a 1-qubit state |psi> = [alpha, beta] 
     into the 3-qubit phase-flip code: 
         |0_L> = |+++>, |1_L> = |--->
-    
     Returns 8-dimensional encoded state
     """
     alpha, beta = psi
-    
     # Logical 3-qubit states using the ket_plus / ket_minus functions
     zero_L = np.kron(ket_plus(), np.kron(ket_plus(), ket_plus()))
     one_L  = np.kron(ket_minus(), np.kron(ket_minus(), ket_minus()))
-    
     # Encoded state
     encoded = alpha * zero_L + beta * one_L
     return encoded
@@ -1000,10 +997,8 @@ def syndrome_measurement_bit_flip(psi):
     """Measure parity checks Z1Z2 and Z2Z3"""
     Z1Z2 = np.kron(np.kron(Z,Z), I)
     Z2Z3 = np.kron(np.kron(I,Z), Z)
-    
     s1 = 1 if np.vdot(psi, Z1Z2 @ psi).real > 0 else -1
     s2 = 1 if np.vdot(psi, Z2Z3 @ psi).real > 0 else -1
-
     return (s1, s2)
 
 def syndrome_measurement_phase_flip(psi):
@@ -1012,8 +1007,9 @@ def syndrome_measurement_phase_flip(psi):
     """
     X1X2 = np.kron(np.kron(X,X), I)
     X2X3 = np.kron(np.kron(I,X), X)
-    
     s1 = 1 if np.vdot(psi, X1X2 @ psi).real > 0 else -1
     s2 = 1 if np.vdot(psi, X2X3 @ psi).real > 0 else -1
-    
     return (s1, s2) 
+
+
+
