@@ -7,6 +7,8 @@ from scipy import sparse
 import scipy
 import matplotlib.pyplot as plt 
 import math 
+from fractions import Fraction 
+
 
 
 I = np.array([[1, 0],
@@ -506,7 +508,183 @@ def order_finding_state(t, x, N):
     # apply inverse QFT
     psi = iqft(psi, t, L)
  
-    return psi.reshape(dim)
+    return psi.reshape(dim) 
+
+    
+def cont_frac(phi, max_denom):
+    """Compute the continued fraction representation of a number phi.
+
+    The function returns a list of integers representing the continued fraction
+    expansion of phi, truncated so that the resulting rational approximation
+    has a denominator at most max_denom.
+
+    Args:
+        phi (float): The number to approximate as a continued fraction.
+        max_denom (int): The maximum allowed denominator for the rational approximation.
+
+    Returns:
+        list[int]: The continued fraction coefficients of phi.
+    """
+    frac = []
+
+    # integer part
+    a = phi // 1
+    r = phi - a
+    frac.append(int(a))
+
+    while eval_contfrac_rational(frac)[1] <= max_denom and r > 1 / max_denom:
+        a = (1 / r) // 1
+        r = (1 / r) - a
+        frac.append(int(a))
+
+    if r < 1 / max_denom:
+        return frac
+    else:
+        return frac[:-1] 
+
+def eval_contfrac(frac):
+    """Evaluate a continued fraction as a floating-point number.
+
+    Args:
+        frac (list[int]): A list of integers representing a continued fraction.
+
+    Returns:
+        float: The decimal value of the continued fraction.
+    """
+    n = len(frac)
+    a = 0
+    for i in range(n - 1, 0, -1):
+        a = 1 / (frac[i] + a)
+    a = frac[0] + a
+    return a
 
 
+def eval_contfrac_rational(frac):
+    """Evaluate a continued fraction as an exact rational number.
 
+    Args:
+        frac (list[int]): A list of integers representing a continued fraction.
+
+    Returns:
+        list[int]: A two-element list [numerator, denominator] representing
+                   the exact rational value of the continued fraction.
+    """
+    n = len(frac)
+    if n == 1:
+        return [frac[0], 1]
+
+    numer = 1
+    denom = frac[n - 1]
+
+    for i in range(n - 2, 0, -1):
+        denom_new = denom * frac[i] + numer
+        numer = denom
+        denom = denom_new
+
+    numer = frac[0] * denom + numer
+    return [numer, denom]
+
+def qft(vector):
+    """Discrete Fourier Transform using NumPy (quantum-style)."""
+    N = len(vector)
+    omega = np.exp(2j * np.pi / N)
+    result = np.zeros(N, dtype=complex)
+    for k in range(N):
+        result[k] = sum(vector[n] * omega**(k*n) for n in range(N))
+    return result / np.sqrt(N)
+
+def simulates_shor_algorithm(N):
+    """simulates_Shor_algorithm classically for small integer N."""
+    if N % 2 == 0:
+        return [2, N//2]
+
+    for attempt in range(5):  # try a few random numbers
+        a = random.randint(2, N-1)
+        if gcd(a, N) != 1:
+            return [gcd(a, N), N//gcd(a, N)]
+
+        # Find period r of f(x) = a^x mod N
+        r = 1
+        while pow(a, r, N) != 1:
+            r += 1
+
+        if r % 2 != 0:
+            continue
+
+        factor1 = gcd(pow(a, r//2) - 1, N)
+        factor2 = gcd(pow(a, r//2) + 1, N)
+
+        if factor1 not in [1, N] or factor2 not in [1, N]:
+            return [factor1, factor2]
+    return [N]  # failure 
+
+
+def is_coprime(a, N):
+    """
+    Returns True if a and N are coprime (gcd(a, N) == 1)
+    """
+    return gcd(a, N) == 1
+
+
+def continued_fraction_expansion(num, den, max_den=100):
+    """
+    Approximates num/den as a fraction with denominator <= max_den
+    This is used to guess the order r from the measurement result
+    """
+    frac = Fraction(num, den).limit_denominator(max_den)
+    return frac.denominator
+
+
+# Simulate quantum order-finding
+def orderFindingSim(N, x, n_first_register):
+    """
+    Returns:
+        pvec: probability vector for measurement outcomes
+        r_true: actual order of x mod N
+    """
+    # Compute the true order r of x mod N
+    r_true = 1
+    while pow(x, r_true, N) != 1:
+        r_true += 1
+    
+    # Build probability vector: peaks at multiples of 2^n / r
+    M = 2**n_first_register
+    pvec = np.zeros(M)
+    for k in range(M):
+        # Each peak corresponds to multiples of M / r_true
+        for j in range(r_true):
+            peak = int(j * M / r_true)
+            if peak < M:
+                pvec[peak] = 1
+    pvec = pvec / pvec.sum()  # normalize
+    return pvec, r_true
+
+def factor(N):
+    """
+    Classical simulation of Shor's factoring algorithm
+    1. Pick random x coprime with N
+    2. Use simulated quantum order-finding to get r
+    3. Compute potential factors using gcd(x^(r/2) ± 1, N)
+    """
+    n_first_register = 2 * N.bit_length()  # heuristic for register size
+
+    while True:
+        x = np.random.randint(2, N)
+        if not is_coprime(x, N):
+            return gcd(x, N)  # found a factor trivially
+        pvec, true_r = orderFindingSim(N, x, n_first_register)
+        m = doMeasurement(pvec)
+        r = continued_fraction_expansion(m, 2**n_first_register, max_den=N)
+        trials = 0
+        while trials < 5:
+            m2 = doMeasurement(pvec)
+            r2 = continued_fraction_expansion(m2, 2**n_first_register, max_den=N)
+            r = np.lcm(r, r2)
+            trials += 1
+        if r % 2 == 0 and pow(x, r//2, N) != N-1:
+            f1 = gcd(pow(x, r//2) - 1, N)
+            f2 = gcd(pow(x, r//2) + 1, N)
+            if f1 not in [1, N]:
+                return f1
+            if f2 not in [1, N]:
+                return f2

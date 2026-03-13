@@ -6,7 +6,8 @@ import itertools
 from scipy import sparse 
 import scipy
 import matplotlib.pyplot as plt 
-import math 
+import math
+import random 
 
 
 I = np.array([[1, 0],

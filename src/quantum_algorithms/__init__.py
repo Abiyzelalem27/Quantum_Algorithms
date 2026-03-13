@@ -39,11 +39,29 @@ from .shorA import (
     Rk,
     build_x_tothe_z, 
     qubits_for_number,
-    order_finding_state, 
+    order_finding_state,
+    eval_contfrac,
+    eval_contfrac_rational,
+    qft, 
+    simulates_shor_algorithm, 
+    cont_frac,
+    factor, 
+    is_coprime, 
+    continued_fraction_expansion, 
+    orderFindingSim, 
+
 )
 
 __all__ = [
     "lcm",
+    "qft",
+    "factor", 
+    "is_coprime", 
+    "continued_fraction_expansion", 
+    "orderFindingSim", 
+    "cont_frac", 
+    "eval_contfrac",
+    "eval_contfrac_rational", 
     "encrypt_number",
     "decrypt_number",
     "generate_RSA_keys",
@@ -66,5 +84,6 @@ __all__ = [
     "build_x_tothe_z", 
     "qubits_for_number",
     "order_finding_state", 
+    "simulates_shor_algorithm", 
 ]
     
