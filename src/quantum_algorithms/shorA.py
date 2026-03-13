@@ -431,40 +431,18 @@ def qubits_for_number(N):
 def build_x_tothe_z(t, x, N):
     """
     Construct the modular exponentiation gate U_x as a sparse matrix.
-
-    Parameters
-    ----------
-    t : int
-        Number of qubits in the first register.
-    x : int
-        Base of the exponentiation.
-    N : int
-        Modulus.
-
-    Returns
-    -------
-    scipy.sparse.csr_matrix
-        Sparse matrix representing U_x.
     """
     L = qubits_for_number(N)
-    dim1 = 2**t          # first register dimension
-    dim2 = 2**L          # second register dimension
-    dim = dim1 * dim2    # total Hilbert space dimension
-
-    row = np.arange(dim)  # row indices
-    col = np.arange(dim)  # column indices (initialized to identity)
-
-    # Loop over all states of the first register
-    for j in range(dim1):
-        # Loop over all states of the second register
-        for y in range(dim2):
-            if y < N:
-                # Map |y> -> |x^j * y mod N> in the block
-                col[j*dim2 + y] = j*dim2 + (y * pow(x, j, N)) % N
-
-    # Build sparse matrix with 1s at positions (row, col)
-    return sparse.csr_matrix((np.ones(dim), (row, col)))
-
+    dim1=2**t # first register dimension
+    dim2=2**L # second register dimension
+    dim=dim1*dim2 # total Hilbert space dimension
+    row=np.arange(dim) # indexes all rows
+    col=np.arange(dim) # will contain the position (col) of the non-zero entry for each row
+    for j in range(dim1): # loop over states of the first register
+        for y in range(dim2): # loop over states of the second register
+            if y < N: # if y>=N, we want the identity, so we leave the column index unchanged (it was initialized to be equal to the row index)
+                col[j*dim2+y]=j*dim2 + np.mod(y*pow(x,j,N),N)
+    return sparse.csr_matrix((np.ones(dim), (row, col))) 
 
 def order_finding_state(t, x, N):
     """
@@ -507,7 +485,6 @@ def order_finding_state(t, x, N):
 
     # apply inverse QFT
     psi = iqft(psi, t, L)
- 
     return psi.reshape(dim) 
 
     
@@ -623,7 +600,7 @@ def is_coprime(a, N):
     """
     Returns True if a and N are coprime (gcd(a, N) == 1)
     """
-    return gcd(a, N) == 1
+    return math.gcd(a, N) == 1
 
 
 def continued_fraction_expansion(num, den, max_den=100):
@@ -672,8 +649,8 @@ def factor(N):
         x = np.random.randint(2, N)
         if not is_coprime(x, N):
             return gcd(x, N)  # found a factor trivially
-        pvec, true_r = orderFindingSim(N, x, n_first_register)
-        m = doMeasurement(pvec)
+        pvec, true_r = orderFindingSim(N, x, n_first_register) #Returns probability vector pvec
+        m = doMeasurement(pvec) 
         r = continued_fraction_expansion(m, 2**n_first_register, max_den=N)
         trials = 0
         while trials < 5:

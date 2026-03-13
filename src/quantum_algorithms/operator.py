@@ -259,7 +259,6 @@ def doMeasurement(state, projectors):
     # Normalize probabilities (safety)
     probs = np.clip(probs, 0, 1)
     probs /= probs.sum()
-
     # Sample outcome
     outcome = np.random.choice(len(projectors), p=probs)
     Pk = projectors[outcome]
