@@ -86,4 +86,31 @@ __all__ = [
     "order_finding_state", 
     "simulates_shor_algorithm", 
 ]
-    
+
+from .rydberg_ops import (
+    H_single_qubit,
+    Z_gate,
+    process_fidelity_manual, 
+    H_two_qubit, 
+    time_evolution_operator,
+    U1_pulse,
+    U2_pulse,
+    U3_pulse,
+    rydberg_CZ_gate,
+    computational_subspace_gate, 
+)
+
+
+__all__ = [
+    "H_single_qubit",
+    "H_two_qubit",
+    "time_evolution_operator",
+    "U1_pulse",
+    "U2_pulse",
+    "U3_pulse",
+    "rydberg_CZ_gate",
+    "computational_subspace_gate",
+    "Z_gate", 
+    "process_fidelity_manual", 
+
+] 
