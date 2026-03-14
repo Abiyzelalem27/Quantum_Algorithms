@@ -139,7 +139,14 @@ def process_fidelity_manual(U, U_ideal):
     d = U.shape[0]
     # trace of U† * U_ideal, squared and normalized
     return np.abs((U.dag() * U_ideal).tr())**2 / d**2
-    
+
+U_ideal = qt.Qobj([
+    [1,0,0,0],
+    [0,1,0,0],
+    [0,0,1,0],
+    [0,0,0,-1]
+])
+     
 
 
 
