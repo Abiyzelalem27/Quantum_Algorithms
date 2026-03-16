@@ -9,8 +9,6 @@ import matplotlib.pyplot as plt
 import math 
 from fractions import Fraction 
 
-
-
 I = np.array([[1, 0],
               [0, 1]], dtype=complex)
 I8 = np.eye(8, dtype=complex)
@@ -193,11 +191,9 @@ def order_mod(x, N):
     """
     r = 1
     value = x % N
-    
     while value != 1:
         value = (value * x) % N
         r += 1
-        
     return r
 
 
@@ -217,20 +213,14 @@ def shor_success(x, N):
     
     if math.gcd(x, N) != 1:
         return True
-    
     r = order_mod(x, N)
-    
     if r % 2 != 0:
         return False
-    
     xr2 = pow(x, r//2, N)
-    
     if xr2 == N - 1:
         return False
-    
     f1 = math.gcd(xr2 - 1, N)
     f2 = math.gcd(xr2 + 1, N)
-    
     return (1 < f1 < N) or (1 < f2 < N)
 
 def test_success_rate(N):
@@ -249,13 +239,11 @@ def test_success_rate(N):
     """
     total = 0
     success = 0
-
     for x in range(2, N):
         if math.gcd(x, N) == 1:
             total += 1
             if shor_success(x, N):
                 success += 1
-
     return success, total, success / total
 
 
@@ -266,31 +254,23 @@ def find_factor(x, N):
 
     Returns a factor of N if successful, otherwise None.
     """
-    
-    # Step 1: Check gcd
+    #Check gcd
     if math.gcd(x, N) != 1:
         return math.gcd(x, N)
-    
-    # Step 2: Find order r of x modulo N
+    #Find order r of x modulo N
     r = order_mod(x, N)
-    
     if r % 2 != 0:  # r must be even
         return None
-    
     xr2 = pow(x, r // 2, N)
-    
     if xr2 == N - 1:  # trivial case
         return None
-    
-    # Step 3: Compute potential factors
+    #Compute potential factors
     f1 = math.gcd(xr2 - 1, N)
     f2 = math.gcd(xr2 + 1, N)
-    
     if 1 < f1 < N:
         return f1
     if 1 < f2 < N:
         return f2
-    
     return None
 
 
@@ -329,15 +309,12 @@ def iqft(state, n, n1):
     """
 
     psi = state
-
     # Main iQFT circuit
     for j in range(n1):
-
         # Apply controlled phase rotations
         for k in range(j):
             CR = buildSparseCRk(n, j, k, j-k+1, inverse=True) 
             psi = CR @ psi 
-
         # Apply Hadamard on qubit j
         op = 1
         for q in range(n):
@@ -345,14 +322,11 @@ def iqft(state, n, n1):
                 op = np.kron(op, H)
             else:
                 op = np.kron(op, I)
-
         psi = op @ psi
-
     # Final swaps (reverse qubit order)
     for i in range(n1 // 2):
         SW = swap_gate(n, i, n1 - i - 1)
         psi = SW @ psi
-
     return psi
 
 def buildSparseGateSingle(n, i, gate):
@@ -464,16 +438,13 @@ def order_finding_state(t, x, N):
     """
 
     L = int(np.ceil(np.log2(N)))
-
     dim1 = 2**t
     dim2 = 2**L
     dim = dim1 * dim2
-
     psi = np.zeros((dim1, dim2), dtype=complex)
 
     # initial state |0>|1>
     psi[0,1] = 1
-
     # Hadamard on first register -> uniform superposition
     psi = np.tile(psi[0], (dim1,1)) / np.sqrt(dim1)
 
@@ -489,12 +460,12 @@ def order_finding_state(t, x, N):
 
     
 def cont_frac(phi, max_denom):
-    """Compute the continued fraction representation of a number phi.
+    """
+    Compute the continued fraction representation of a number phi.
 
     The function returns a list of integers representing the continued fraction
     expansion of phi, truncated so that the resulting rational approximation
     has a denominator at most max_denom.
-
     Args:
         phi (float): The number to approximate as a continued fraction.
         max_denom (int): The maximum allowed denominator for the rational approximation.
@@ -520,11 +491,10 @@ def cont_frac(phi, max_denom):
         return frac[:-1] 
 
 def eval_contfrac(frac):
-    """Evaluate a continued fraction as a floating-point number.
-
+    """
+    Evaluate a continued fraction as a floating-point number.
     Args:
         frac (list[int]): A list of integers representing a continued fraction.
-
     Returns:
         float: The decimal value of the continued fraction.
     """
@@ -537,11 +507,10 @@ def eval_contfrac(frac):
 
 
 def eval_contfrac_rational(frac):
-    """Evaluate a continued fraction as an exact rational number.
-
+    """
+    Evaluate a continued fraction as an exact rational number.
     Args:
         frac (list[int]): A list of integers representing a continued fraction.
-
     Returns:
         list[int]: A two-element list [numerator, denominator] representing
                    the exact rational value of the continued fraction.
@@ -549,20 +518,20 @@ def eval_contfrac_rational(frac):
     n = len(frac)
     if n == 1:
         return [frac[0], 1]
-
     numer = 1
     denom = frac[n - 1]
-
     for i in range(n - 2, 0, -1):
         denom_new = denom * frac[i] + numer
         numer = denom
         denom = denom_new
-
     numer = frac[0] * denom + numer
     return [numer, denom]
 
 def qft(vector):
-    """Discrete Fourier Transform using NumPy (quantum-style)."""
+    """
+    Discrete Fourier Transform using NumPy (quantum-style).
+    
+    """
     N = len(vector)
     omega = np.exp(2j * np.pi / N)
     result = np.zeros(N, dtype=complex)
@@ -643,8 +612,7 @@ def factor(N):
     2. Use simulated quantum order-finding to get r
     3. Compute potential factors using gcd(x^(r/2) ± 1, N)
     """
-    n_first_register = 2 * N.bit_length()  # heuristic for register size
-
+    n_first_register = 2 * N.bit_length()  #register size
     while True:
         x = np.random.randint(2, N)
         if not is_coprime(x, N):
