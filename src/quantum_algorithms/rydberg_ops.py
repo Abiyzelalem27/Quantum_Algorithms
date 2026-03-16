@@ -81,7 +81,7 @@ def rydberg_CZ_gate(Omega, V):
     U3 = U3_pulse(Omega)
     return U3 * U2 * U1
 
-s
+
 def computational_subspace_gate(U):
     """
     Extract the 4x4 gate matrix in the computational basis |00>, |01>, |10>, |11>.
