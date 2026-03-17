@@ -26,10 +26,6 @@ All notable changes to this project will be documented in this file.
 ### Added
 - Implemented Deutsch–Jozsa Algorithm (DJA) with rotation gates
 - Introduced rotation errors at various points:
-  - Before first Hadamard
-  - After first Hadamard
-  - After oracle
-  - After final Hadamard
 - Added measurement sampling to study probabilistic outcomes under noise
 - Tested effects on 1–11 qubits
 
