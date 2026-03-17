@@ -27,7 +27,6 @@ All notable changes to this project will be documented in this file.
 - Implemented Deutsch–Jozsa Algorithm (DJA) with rotation gates
 - Introduced rotation errors at various points:
 - Added measurement sampling to study probabilistic outcomes under noise
-- Tested effects on 1–11 qubits
 
 ## [1.2.0] - 2026-03-05
 ### Added
