@@ -19,12 +19,12 @@ All notable changes to this project will be documented in this file.
 ## [1.0.0] - 2026-03-04
 ### Added
 - noisy quantum gate simulation
-- Added Bloch sphere visualization
-- Added quantum channel using Kraus operators
+-  Bloch sphere visualization
+- quantum channel using Kraus operators
 
 ## [1.1.0] - 2026-03-03
 ### Added
-- Implemented Deutsch–Jozsa Algorithm (DJA) with rotation gates
+-  Deutsch–Jozsa Algorithm (DJA) with rotation gates
 - Introduced rotation errors at various points:
 - Added measurement sampling to study probabilistic outcomes under noise
 
