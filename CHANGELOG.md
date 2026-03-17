@@ -18,6 +18,7 @@ All notable changes to this project will be documented in this file.
 
 ## [1.0.0] - 2026-03-04
 ### Added
+<<<<<<< HEAD
 - noisy quantum gate simulation
 -  Bloch sphere visualization
 - quantum channel using Kraus operators
@@ -27,12 +28,23 @@ All notable changes to this project will be documented in this file.
 -  Deutsch–Jozsa Algorithm (DJA) with rotation gates
 - Introduced rotation errors at various points:
 - Added measurement sampling to study probabilistic outcomes under noise
+=======
+- Quantum channel
+- Bloch sphere visualization for quantum channel 
+
+## [1.1.0] - 2026-03-03
+### Added
+- Deutsch–Jozsa Algorithm (DJA) with rotation gates
+- Introduced rotation errors at various points:
+- Measurement sampling to study probabilistic outcomes under noise
+>>>>>>> A
 
 ## [1.2.0] - 2026-03-05
 ### Added
-- Simulated noisy quantum gates and quantum error correction techniques
+- Quantum error correction
 ## [1.3.0] - 2026-03-09
 ### Added
+<<<<<<< HEAD
 - Implemented RSA encryption and decryption experiments:
   - Key generation for various primes
   - Encryption and decryption of numbers and text
@@ -44,10 +56,21 @@ All notable changes to this project will be documented in this file.
   - order-finding modulo N
   - finding factors for small N
   - group analysis of numbers coprime with N
+=======
+- Implemented RSA encryption and decryption:
+  - Key generation
+  - Encryption and decryption of numbers.
+
+## [1.4.0] - 2026-03-10
+### Added
+  - Order-finding 
+  - Finding factors
+>>>>>>> A
 
 ## [1.5.0] - 2026-03-12
 ### Added
 - Quantum Fourier Transform (QFT) and inverse QFT
+<<<<<<< HEAD
 - Built controlled phase gates and swap gates for arbitrary qubits
 - order-finding 
 
@@ -56,3 +79,11 @@ All notable changes to this project will be documented in this file.
 - adiabatic state preparation
 - entangling gates with Rydberg atoms
 - noisy gates, quantum error correction, and RSA simulations 
+=======
+- Controlled phase gates and swap gates for arbitrary qubits
+
+## [1.6.0] - 2026-03-14
+### Added
+- Adiabatic state preparation
+- Entangling gates with Rydberg atoms
+>>>>>>> A
