@@ -429,15 +429,8 @@ def apply_kraus(rho, kraus_ops):
 
     Parameters
     
-    rho : np.ndarray
-        2x2 density matrix of a qubit
-    kraus_ops : list of np.ndarray
-        List of Kraus operators
-
-    Returns
-    
-    rho_out : np.ndarray
-        Density matrix after applying the channel
+    rho : ndensity matrix of a qubit
+    kraus_ops :List of Kraus operators
     """
     rho_out = np.zeros_like(rho, dtype=complex)
     
@@ -461,14 +454,8 @@ def apply_channel(rho, kraus_ops):
     Applies a quantum channel to a single-qubit density matrix.
 
     Parameters:
-        rho : np.ndarray
-            2x2 density matrix of a qubit
-        kraus_ops : list of np.ndarray
-            List of Kraus operators defining the channel
-
-    Returns:
-        rho_out : np.ndarray
-            Density matrix after the channel
+        rho :  density matrix 
+        kraus_ops :Kraus operators defining the channel
     """
     rho_out = np.zeros_like(rho, dtype=complex)
     for M in kraus_ops:
@@ -580,7 +567,6 @@ def dm(psi):
 def random_pure_state(rng=None):
     """
     Generate a random single-qubit pure state |psi⟩.
-
     Useful for Monte-Carlo simulations.
     """
     rng = np.random.default_rng() if rng is None else rng
@@ -618,22 +604,11 @@ def E1_rho(psi, p):
 
 def deutsch_jozsa(n, f):
     """
-    Deutsch–Jozsa Algorithm the Boolean function f(x) : {0,1}^n -> {0,1}
-        is constant or balanced using a single oracle query.
-    Steps:
-        1. Prepare |0...0>|1>
-        2. Apply Hadamard to all qubits
-        3. Apply oracle U_f
-        4. Apply Hadamard to the first n qubits
-        5. Measure first n qubits
+    Deutsch–Jozsa Algorithm(DJA) the Boolean function 
+        is constant or balanced using a single oracle query. 
     Parameters:
-        n : int
-            Number of input qubits
-        f : function
-            Oracle function f(x) -> 0 or 1
-    Returns:
-        state :
-            Final state vector after algorithm  
+        n : Number of input qubits
+        f : Oracle function
     """
     total_qubits = n + 1
     state = initial_state(n)
@@ -646,19 +621,7 @@ def deutsch_jozsa(n, f):
 
 def deutsch_jozsa_error1(n, f, theta, target_qubit, axis):
     """
-    Deutsch–Jozsa algorithm with a single-qubit rotation error
-    applied before the first Hadamard gates.
-
-    Parameters:
-        theta : float
-            Rotation angle in radians
-        target_qubit : int
-            Qubit to apply the rotation
-        axis : tuple
-            Rotation axis vector (nx, ny, nz)
-    Returns:
-        state : 
-            Final state vector after algorithm  
+    DJA with a single-qubit rotation error applied before the first Hadamard gates.
     """
     total_qubits = n + 1
     state = initial_state(n)
@@ -674,8 +637,7 @@ def deutsch_jozsa_error1(n, f, theta, target_qubit, axis):
 
 def deutsch_jozsa_error2(n, f, theta, target_qubit, axis):
     """
-    Deutsch–Jozsa algorithm with a single-qubit rotation error
-    applied after the first Hadamard gates.
+    DJA with a single-qubit rotation error applied after the first Hadamard gates.
     """
     total_qubits = n + 1
     state = initial_state(n)
@@ -691,8 +653,7 @@ def deutsch_jozsa_error2(n, f, theta, target_qubit, axis):
 
 def deutsch_jozsa_error3(n, f, theta, target_qubit, axis):
     """
-    Deutsch–Jozsa algorithm with a single-qubit rotation error
-    applied after the oracle U_f.
+    DJA with a single-qubit error applied after the oracle U_f.
     """
     total_qubits = n + 1
     state = initial_state(n)
@@ -727,7 +688,6 @@ def encode_3_qubit_bit_flip_code(psi):
     """
     Encode a single qubit state into the 3-qubit bit-flip code.
     """
-    
     psi = np.kron(psi, np.kron(ket0(), ket0()))
     CNOT12 = controlled_gate(X, 0, 1, 3)
     CNOT13 = controlled_gate(X, 0, 2, 3)
@@ -756,7 +716,6 @@ def syndrome_measurement(psi):
 def correct_phase_flip(psi):
     """
     Correct a single phase-flip using the 3-qubit phase-flip code.
-    Returns corrected 3-qubit state.
     """
     s1,s2 = syndrome_measurement(psi)
     
@@ -775,12 +734,6 @@ def correct_phase_flip(psi):
 def correct_bit_flip(psi):
     """
     Correct a single bit-flip using the syndrome.
-
-    Args:
-        psi: encoded 3-qubit state vector
-
-    Returns:
-        Corrected 3-qubit state vector
     """
     s1, s2 = syndrome_measurement(psi)
     
@@ -797,14 +750,7 @@ def correct_bit_flip(psi):
 
 def bit_flip_channel_3qubits(psi, p):
     """
-    Apply the bit-flip channel independently to all three qubits.
-
-    Args:
-        psi : 8x1 vector (encoded 3-qubit state)
-        p   : probability of bit-flip on each qubit
-
-    Returns:
-        rho_out : 8x1 vector after the bit-flip channel (assuming pure state evolution)
+    Apply the bit-flip channel.
     """
     # Single-qubit Kraus operators
     E0 = np.sqrt(1 - p) * I
@@ -825,20 +771,12 @@ def bit_flip_channel_3qubits(psi, p):
     
 def bit_flip_kraus_nqubits(p, n):
     """
-    Generate Kraus operators for a bit-flip channel applied independently
+    Kraus operators for a bit-flip channel applied
     to each qubit in an n-qubit system.
 
     Parameters
-    ----------
-    p : float
-        Bit-flip probability for each qubit (0 <= p <= 1)
-    n_qubits : int
-        Number of qubits
-
-    Returns
-    -------
-    kraus_ops : list of np.ndarray
-        List of 2^n_qubits Kraus operators (each 2^n x 2^n)
+    p : probability 
+    n:  Number of qubits
     """
 
     single_qubit_ops = [np.sqrt(1 - p) * I, np.sqrt(p) * X]
@@ -983,7 +921,6 @@ def encode_3_qubit_phase_flip_code(psi):
     Encode a 1-qubit state |psi> = [alpha, beta] 
     into the 3-qubit phase-flip code: 
         |0_L> = |+++>, |1_L> = |--->
-    Returns 8-dimensional encoded state
     """
     alpha, beta = psi
     # Logical 3-qubit states using the ket_plus / ket_minus functions
