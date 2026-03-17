@@ -18,7 +18,7 @@ All notable changes to this project will be documented in this file.
 
 ## [1.0.0] - 2026-03-04
 ### Added
-- Implemented noisy quantum gate simulation
+- noisy quantum gate simulation
 - Added Bloch sphere visualization
 - Added quantum channel using Kraus operators
 
@@ -36,24 +36,23 @@ All notable changes to this project will be documented in this file.
 - Implemented RSA encryption and decryption experiments:
   - Key generation for various primes
   - Encryption and decryption of numbers and text
-  - Verified large modulus computations and correctness
-  - Explored Carmichael function for private key generation
+  
 
 ## [1.4.0] - 2026-03-10
 ### Added
 - Explored factoring algorithm simulations:
-  - Brute-force order-finding modulo N
-  - Success rate of finding factors for small N
-  - Multiplicative group analysis of numbers coprime with N
+  - order-finding modulo N
+  - finding factors for small N
+  - group analysis of numbers coprime with N
 
 ## [1.5.0] - 2026-03-12
 ### Added
-- Implemented Quantum Fourier Transform (QFT) and inverse QFT
+- Quantum Fourier Transform (QFT) and inverse QFT
 - Built controlled phase gates and swap gates for arbitrary qubits
-- Prepared code templates for quantum order-finding algorithm
+- order-finding 
 
 ## [1.6.0] - 2026-03-14
 ### Added
-- Explored adiabatic state preparation
-- Developed entangling gates with Rydberg atoms
-- Consolidated all experiments for DJA, noisy gates, quantum error correction, and RSA simulations 
+- adiabatic state preparation
+- entangling gates with Rydberg atoms
+- noisy gates, quantum error correction, and RSA simulations 
