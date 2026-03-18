@@ -8,8 +8,6 @@ import scipy
 import matplotlib.pyplot as plt 
 import math
 import random 
-
-
 I = np.array([[1, 0],
               [0, 1]], dtype=complex)
 I8 = np.eye(8, dtype=complex)
@@ -99,33 +97,25 @@ def U_one_gate(V, i, N):
 def U_two_gates(V, W, i, j, N):
     """
     Applies two single-qubit gates to an N-qubit system.
-
     If i != j:
         applies V on qubit i and W on qubit j.
-
     If i == j:
         applies the composed gate V @ W on qubit i,
         preserving operator ordering.
     """
     ops = [I] * N
-
     if i == j:
         ops[i] = V @ W
     else:
         ops[i] = V
         ops[j] = W
-
     return U_N_qubits(ops)
 
 def rho(states, probabilities):
     """
     Constructs a density matrix from pure states.
-
     Parameters
-    states : list of numpy.ndarray
-        State vectors.
-    probabilities : list of float
-        Classical probabilities.
+    states  and probabilities 
     """
     return sum(p * np.outer(psi, psi.conj())
                for psi, p in zip(states, probabilities))
@@ -133,12 +123,9 @@ def rho(states, probabilities):
 def evolve(state, U):
     """
     Evolves a quantum state using a unitary operator.
-
     Parameters
-    state : numpy.ndarray
-        State vector or density matrix.
-    U : numpy.ndarray
-        Unitary operator.
+    state : State vector or density matrix.
+    U :  Unitary operator.
     """
     if state.ndim == 1:
         # Pure state evolution
@@ -153,14 +140,11 @@ def evolve(state, U):
 def controlled_gate(U, control, target, N):
     """
     Controlled-U gate on an N-qubit register.
-
     Implements the projector decomposition:
-
         C_U = P0(control) ⊗ I  +  P1(control) ⊗ U(target)
     """
     if control == target:
         raise ValueError("Control and target must be different")
-
     # Operator acting on the subspace where the control qubit is |0⟩
     P0_ops = [
         P0 if i == control else I
@@ -187,9 +171,7 @@ def normalize_state(psi):
 def born_rule_probs(rho, projectors):
     """
     Compute measurement outcome probabilities using the Born rule:
-    p_i = Tr(P_i * rho) for each projector P_i.
-
-    Returns a normalized probability vector.
+    p(i)= Tr(Pi * rho) for each projector
     """
     probs = np.array([np.real(np.trace(Pi @ rho)) for Pi in projectors])
     probs = np.clip(probs, 0, 1)
@@ -206,7 +188,6 @@ def sample_from_probs(probs):
 def measure_pure_state(psi, projectors):
     """
     Measure pure state |psi> using projectors.
-
     Returns:
         outcome (int)
         psi_post (np.ndarray)
@@ -228,21 +209,11 @@ def measure_pure_state(psi, projectors):
 def doMeasurement(state, projectors):
     """
      Perform a projective measurement on a quantum state (pure or density matrix)
-    using a list of projectors.
-
-    Parameters:
-        state : np.ndarray
-            Pure state vector (1D) or density matrix (2D)
-        projectors : list of np.ndarray
-            List of projectors corresponding to measurement outcomes
-
+    using a list of projectors
     Returns:
-        outcome : int
-            Index of the measured outcome
-        post_state : np.ndarray
-            Collapsed state after measurement (normalized)
-        probs : np.ndarray
-            Probability vector for each outcome
+        outcome :Index of the measured outcome
+        post_state : Collapsed state after measurement (normalized)
+        probs : Probability 
     """
     # Determine if pure state or density matrix
     pure = state.ndim == 1
@@ -280,16 +251,7 @@ def doMeasurement(state, projectors):
 
 def measurement_density_matrix(rho, projectors):
     """
-    Perform measurement using the given projectors.
-
-    Args:
-        rho : density matrix
-        projectors: measurement projectors P_i
-
-    Returns:
-        outcome (int)
-        rho_post (np.ndarray)
-        probs (np.ndarray)
+    Perform measurement using the given projectors
     """
     probs = born_rule_probs(rho, projectors)
     outcome = sample_from_probs(probs)
@@ -350,7 +312,6 @@ def oracle_function(f, n):
                 # swap amplitudes between ancilla 0 and 1 for this x
                 new[idx0], new[idx1] = state[idx1], state[idx0]
         return new   
-
     return apply_Uf  
 
 def f_constant_0(x):
@@ -388,7 +349,6 @@ def sample_measurements_input(state, n, shots, rng=None):
 def bloch_vector(rho):
     """
     Compute the Bloch vector (rX, rY, rZ) for a single-qubit density matrix rho.
-    
     r_J = Tr(rho * J), J = X, Y, Z
     """
     rX = np.real(np.trace(rho @ X))
@@ -402,17 +362,9 @@ def bloch_visualization(channel_kraus_ops, n_samples=1000, seed=None):
     Visualize the effect of a single-qubit quantum channel on the Bloch sphere.
 
     Parameters
-    
-    channel_kraus_ops : list of np.ndarray
-        Kraus operators defining the quantum channel.
-    n_samples : int, optional
-        Number of random pure states to sample (default 1000).
-    seed : int or None, optional
-        Random seed for reproducibility.
-
-    Returns
-    None
-        Displays a Bloch sphere plot with transformed states.
+    channel_kraus_ops : Kraus operators for quantum channel.
+    n_samples : Number of random pure states to sample (default 1000).
+    seed :  Random seed for reproducibility.
     """
     rng = np.random.default_rng(seed)
     bloch_vectors_out = np.zeros((n_samples, 3))
@@ -426,14 +378,8 @@ def bloch_visualization(channel_kraus_ops, n_samples=1000, seed=None):
 def apply_kraus(rho, kraus_ops):
     """
     Apply a quantum channel to a density matrix using Kraus operators.
-
-    Parameters
-    
-    rho : ndensity matrix of a qubit
-    kraus_ops :List of Kraus operators
     """
     rho_out = np.zeros_like(rho, dtype=complex)
-    
     for E in kraus_ops:
         rho_out += E @ rho @ E.conj().T  # E rho E†
     
@@ -442,7 +388,6 @@ def apply_kraus(rho, kraus_ops):
 def rotation_channel(p, R):
     """
     Random unitary single-qubit channel using rotation R.
-
     Returns list of Kraus operators [M0, M1].
     """
     M0 = np.sqrt(1-p) * I
@@ -452,10 +397,6 @@ def rotation_channel(p, R):
 def apply_channel(rho, kraus_ops):
     """
     Applies a quantum channel to a single-qubit density matrix.
-
-    Parameters:
-        rho :  density matrix 
-        kraus_ops :Kraus operators defining the channel
     """
     rho_out = np.zeros_like(rho, dtype=complex)
     for M in kraus_ops:
@@ -586,7 +527,6 @@ def pauli_kraus_channel(pX, pY, pZ):
     pI = 1 - (pX + pY + pZ)
     if pI < 0:
         raise ValueError("Probabilities must satisfy pX+pY+pZ <= 1")
-
     E0 = np.sqrt(pI) * I
     E1 = np.sqrt(pX) * X
     E2 = np.sqrt(pY) * Y
@@ -692,33 +632,25 @@ def encode_3_qubit_bit_flip_code(psi):
     CNOT12 = controlled_gate(X, 0, 1, 3)
     CNOT13 = controlled_gate(X, 0, 2, 3)
     psi = CNOT13 @ CNOT12 @ psi
-    
     return psi 
 
 def syndrome_measurement(psi):
     """Measure parity checks Z1Z2 and Z2Z3"""
     Z1Z2 = np.kron(Z, Z)
     Z1Z2 = np.kron(Z1Z2, I)  # qubits 1 and 2
-
     Z2Z3 = np.kron(I, np.kron(Z, Z))  # qubits 2 and 3
-
     s1 = np.vdot(psi, Z1Z2 @ psi).real
     s2 = np.vdot(psi, Z2Z3 @ psi).real
-
     # Convert to +1/-1
     s1 = 1 if s1 > 0 else -1
     s2 = 1 if s2 > 0 else -1
-
     return (s1, s2)
-
-
     
 def correct_phase_flip(psi):
     """
     Correct a single phase-flip using the 3-qubit phase-flip code.
     """
     s1,s2 = syndrome_measurement(psi)
-    
     # Map syndromes to Z corrections
     if (s1,s2) == (1,1):
         return psi          
@@ -736,7 +668,6 @@ def correct_bit_flip(psi):
     Correct a single bit-flip using the syndrome.
     """
     s1, s2 = syndrome_measurement(psi)
-    
     if (s1, s2) == (1, 1):
         return psi
     elif (s1, s2) == (-1, 1):
@@ -755,40 +686,33 @@ def bit_flip_channel_3qubits(psi, p):
     # Single-qubit Kraus operators
     E0 = np.sqrt(1 - p) * I
     E1 = np.sqrt(p) * X  
-
     # Generate all 8 three-qubit Kraus operator
     kraus_ops = []
     for k0 in [E0, E1]:
         for k1 in [E0, E1]:
             for k2 in [E0, E1]:
-                kraus_ops.append(np.kron(k0, np.kron(k1, k2)))
-                
+                kraus_ops.append(np.kron(k0, np.kron(k1, k2)))        
     rho_out = np.zeros_like(psi)
     for K in kraus_ops:
         rho_out += K @ psi
-
     return rho_out 
     
 def bit_flip_kraus_nqubits(p, n):
     """
     Kraus operators for a bit-flip channel applied
     to each qubit in an n-qubit system.
-
     Parameters
     p : probability 
     n:  Number of qubits
     """
-
     single_qubit_ops = [np.sqrt(1 - p) * I, np.sqrt(p) * X]
     kraus_ops = [np.array([[1]], dtype=complex)] 
-
     for _ in range(n):
         new_ops = []
         for K in kraus_ops:
             for E in single_qubit_ops:
                 new_ops.append(np.kron(K, E))
         kraus_ops = new_ops
-
     return kraus_ops
     
 
@@ -946,7 +870,7 @@ def syndrome_measurement_phase_flip(psi):
     X2X3 = np.kron(np.kron(I,X), X)
     s1 = 1 if np.vdot(psi, X1X2 @ psi).real > 0 else -1
     s2 = 1 if np.vdot(psi, X2X3 @ psi).real > 0 else -1
-    return (s1, s2) 
+    return (s1, s2)  
 
 
 
