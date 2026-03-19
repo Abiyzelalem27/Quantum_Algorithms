@@ -5,8 +5,8 @@ import numpy as np
 import pytest
 from numpy.testing import assert_allclose
 
-from quantum_gate_package import (
-    I, X, Y, Z, H, S, T,
+from quantum_algorithms import (
+    I, X, Y, Z, H, S, T, 
     P0, P1, CNOT,
     projectors,
     U_N_qubits, U_one_gate, U_two_gates,
@@ -401,5 +401,7 @@ def test_controlled_gate_matches_projector_definition_all_indices():
 
                 expected = U_N_qubits(P0_ops) + U_N_qubits(P1_ops)
 
-                assert np.allclose(C_U, expected) 
+                assert np.allclose(C_U, expected)
+
+
 
