@@ -6,11 +6,8 @@ import itertools
 from scipy import sparse 
 import scipy
 import matplotlib.pyplot as plt 
-import math
+import math 
 import random
-
-
-
 def initial_state(n):
     """
     Prepared the initial state
@@ -49,7 +46,6 @@ def oracle_function(f, n):
         f : Boolean function f(x) -> {0, 1} for x in [0, 2^n)
         n : Number of input qubits
     """
-
     def apply_Uf(state):
         new = np.copy(state)
         for x in range(2**n):
@@ -64,13 +60,10 @@ def oracle_function(f, n):
 
 def f_constant_0(x):
     return 0 
-
 def f_constant_1(x):
     return 1
-
 def f_balanced_parity(x):
     return x % 2  # 0 for even, 1 for odd 
-
 def measure_probs_first_n(state, n):
     """Compute prob distribution over first n qubits (sum over ancilla)."""
     probs = np.zeros(2**n)
@@ -137,7 +130,6 @@ def deutsch_jozsa_error2(n, f, theta, target_qubit, axis):
     state = U(state)
     H_first_n = U_N_qubits([H]*n + [I])
     state = H_first_n @ state
-    
     return state
 
 def deutsch_jozsa_error3(n, f, theta, target_qubit, axis):
@@ -153,7 +145,6 @@ def deutsch_jozsa_error3(n, f, theta, target_qubit, axis):
     state = U_one_gate(R, target_qubit, total_qubits) @ state
     H_first_n = U_N_qubits([H]*n + [I])
     state = H_first_n @ state
-
     return state
 
 def deutsch_jozsa_error4(n, f, theta, target_qubit, axis):
@@ -170,5 +161,4 @@ def deutsch_jozsa_error4(n, f, theta, target_qubit, axis):
     state = H_first_n @ state
     R = rotation_gate(theta, axis)
     state = U_one_gate(R, target_qubit, total_qubits) @ state
-
     return state
