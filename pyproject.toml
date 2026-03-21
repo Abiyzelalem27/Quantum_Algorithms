@@ -14,13 +14,17 @@ license = { text = "MIT" }
 authors = [{ name = "Abiy Zelalem Tegegne" }]
 
 dependencies = [
-  "numpy",
-  "matplotlib",
-  "scipy"
+  "numpy>=1.23",
+  "matplotlib>=3.6",
+  "scipy>=1.10",
+  "qutip>=4.7"
 ]
 
 [project.optional-dependencies]
 dev = ["pytest", "black", "flake8"]
+
+[project.urls]
+Homepage = "https://github.com/Abiyzelalem27/Quantum_Algorithms"
 
 [tool.setuptools.packages.find]
 where = ["src"] 
