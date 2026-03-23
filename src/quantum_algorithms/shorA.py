@@ -7,7 +7,9 @@ from scipy import sparse
 import scipy
 import matplotlib.pyplot as plt 
 import math 
-from fractions import Fraction 
+from fractions import Fraction
+import random 
+from math import gcd 
 
 I = np.array([[1, 0],
               [0, 1]], dtype=complex)
@@ -528,9 +530,7 @@ def eval_contfrac_rational(frac):
     return [numer, denom]
 
 def qft(vector):
-    """
-    Discrete Fourier Transform using NumPy (quantum-style).
-    
+    """Discrete Fourier Transform using NumPy (quantum-style).
     """
     N = len(vector)
     omega = np.exp(2j * np.pi / N)
@@ -540,34 +540,28 @@ def qft(vector):
     return result / np.sqrt(N)
 
 def simulates_shor_algorithm(N):
-    """simulates_Shor_algorithm classically for small integer N."""
+    """Simulates Shor algorithm classically for integer N."""
     if N % 2 == 0:
         return [2, N//2]
-
     for attempt in range(5):  # try a few random numbers
         a = random.randint(2, N-1)
         if gcd(a, N) != 1:
             return [gcd(a, N), N//gcd(a, N)]
-
         # Find period r of f(x) = a^x mod N
         r = 1
         while pow(a, r, N) != 1:
             r += 1
-
         if r % 2 != 0:
             continue
-
         factor1 = gcd(pow(a, r//2) - 1, N)
         factor2 = gcd(pow(a, r//2) + 1, N)
-
         if factor1 not in [1, N] or factor2 not in [1, N]:
             return [factor1, factor2]
     return [N]  # failure 
 
 
 def is_coprime(a, N):
-    """
-    Returns True if a and N are coprime (gcd(a, N) == 1)
+    """Returns True if a and N are coprime (gcd(a, N) == 1)
     """
     return math.gcd(a, N) == 1
 
