@@ -353,24 +353,19 @@ def buildSparseCNOT(n, ic, it):
 def buildSparseCRk(n, ic, it, k, inverse=False):
     """
     Sparse controlled-Rk gate on n qubits.
-
-    Parameters
-    ----------
+    
     n : int - total number of qubits
     ic : int - control qubit index
     it : int - target qubit index
     k : int - Rk parameter
-    inverse : bool - if True, use Rk^\dagger
     """
     phase = np.exp(2j * np.pi / 2**k)
     if inverse:
         phase = np.conj(phase)
     R = np.array([[1,0],[0,phase]])
-
     P0ic = buildSparseGateSingle(n, ic, P0)
     P1ic = buildSparseGateSingle(n, ic, P1)
     Rt = buildSparseGateSingle(n, it, R)
-
     return P0ic + P1ic @ Rt
 
 
