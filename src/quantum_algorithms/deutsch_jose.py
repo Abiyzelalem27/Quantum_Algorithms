@@ -8,6 +8,7 @@ import scipy
 import matplotlib.pyplot as plt 
 import math 
 import random
+
 def initial_state(n):
     """
     Prepared the initial state
@@ -161,4 +162,4 @@ def deutsch_jozsa_error4(n, f, theta, target_qubit, axis):
     state = H_first_n @ state
     R = rotation_gate(theta, axis)
     state = U_one_gate(R, target_qubit, total_qubits) @ state
-    return state
+    return state  

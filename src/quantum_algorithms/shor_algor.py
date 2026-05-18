@@ -13,6 +13,7 @@ from math import gcd
 
 
 
+
 I = np.array([[1, 0],
               [0, 1]], dtype=complex)
 I8 = np.eye(8, dtype=complex)
@@ -228,18 +229,11 @@ def shor_success(x, N):
     return (1 < f1 < N) or (1 < f2 < N)
 
 def test_success_rate(N):
-    """
-    Test for how many numbers x (with 1 < x < N and gcd(x,N)=1)
+    """Test for how many numbers x (with 1 < x < N and gcd(x,N)=1)
     Shor's classical conditions succeed.
-
-    Returns
-    -------
-    success : int
-        Number of successful x
-    total : int
-        Total number of x coprime with N
-    rate : float
-        Success probability 
+    success : Number of successful x
+    total : Total number of x coprime with N
+    rate : Success probability 
     """
     total = 0
     success = 0
@@ -252,12 +246,10 @@ def test_success_rate(N):
 
 
 def find_factor(x, N):
-    """
-    Attempt to find a non-trivial factor of N using
+    """Attempt to find a non-trivial factor of N using
     Shor's classical post-processing step for a given x.
 
-    Returns a factor of N if successful, otherwise None.
-    """
+    Returns a factor of N if successful, otherwise None."""
     #Check gcd
     if math.gcd(x, N) != 1:
         return math.gcd(x, N)
@@ -279,8 +271,7 @@ def find_factor(x, N):
 
 
 def iqft(state, n, n1):
-    """
-    Apply the inverse Quantum Fourier Transform (iQFT) to the first n1 qubits
+    """Apply the inverse Quantum Fourier Transform (iQFT) to the first n1 qubits
     of an n-qubit quantum register.
 
     The function sequentially applies the gates of the iQFT circuit directly
@@ -288,29 +279,8 @@ def iqft(state, n, n1):
     This avoids building a dense 2^n x 2^n operator and keeps the simulation
     memory efficient.
 
-    The circuit consists of:
-        1. Controlled phase rotations R_k^{-1}
-        2. Hadamard gates
-        3. Swap gates to reverse qubit order
-
     Only the first n1 qubits are transformed, while the remaining qubits
-    remain unchanged (identity operation).
-
-    Parameters
-    ----------
-    state : numpy.ndarray
-        State vector of the n-qubit register in the computational basis.
-        The dimension must be 2^n.
-    n : int
-        Total number of qubits in the register.
-    n1 : int
-        Number of qubits on which the iQFT should act (starting from qubit 0).
-
-    Returns
-    -------
-    numpy.ndarray
-        The transformed state vector after applying the iQFT.
-    """
+    remain unchanged (identity operation). """
 
     psi = state
     # Main iQFT circuit
@@ -334,8 +304,7 @@ def iqft(state, n, n1):
     return psi
 
 def buildSparseGateSingle(n, i, gate):
-    """
-    Embed a single-qubit gate into an n-qubit register using sparse matrices.
+    """Embed a single-qubit gate into an n-qubit register using sparse matrices.
     """
     sgate = sparse.csr_matrix(gate)
     left = sparse.identity(2**i, format="csr")
@@ -344,8 +313,7 @@ def buildSparseGateSingle(n, i, gate):
 
 
 def buildSparseCNOT(n, ic, it):
-    """
-    Sparse n-qubit CNOT gate with control qubit ic and target qubit it.
+    """ Sparse n-qubit CNOT gate with control qubit ic and target qubit it.
     """
     P0ic = buildSparseGateSingle(n, ic, P0)
     P1ic = buildSparseGateSingle(n, ic, P1)
@@ -353,14 +321,12 @@ def buildSparseCNOT(n, ic, it):
     return P0ic + P1ic @ Xit
 
 def buildSparseCRk(n, ic, it, k, inverse=False):
-    """
-    Sparse controlled-Rk gate on n qubits.
+    """Sparse controlled-Rk gate on n qubits.
     
-    n : int - total number of qubits
-    ic : int - control qubit index
-    it : int - target qubit index
-    k : int - Rk parameter
-    """
+    n :  total number of qubits
+    ic :control qubit index
+    it : target qubit index
+    k :  Rk parameter """
     phase = np.exp(2j * np.pi / 2**k)
     if inverse:
         phase = np.conj(phase)
@@ -420,20 +386,9 @@ def build_x_tothe_z(t, x, N):
 def order_finding_state(t, x, N):
     """
     Simulates the quantum order finding algorithm (without measurement).
-
-    Parameters
-    ----------
-    t : int
-        Number of qubits in the first register (phase estimation register)
-    x : int
-        Base whose order modulo N should be found
-    N : int
-        Modulus
-
-    Returns
-    -------
-    psi : numpy array
-        Final state vector of the quantum circuit
+    t : Number of qubits in the first register (phase estimation register)
+    x : Base whose order modulo N should be found
+    N : int 
     """
 
     L = int(np.ceil(np.log2(N)))
@@ -596,6 +551,20 @@ def orderFindingSim(N, x, n_first_register):
     pvec = pvec / pvec.sum()  # normalize
     return pvec, r_true
 
+def sample_measurement(probs, rng=None):
+    """
+    Sample a single measurement outcome
+    from a probability distribution.
+    """
+    if rng is None:
+        rng = np.random.default_rng()
+
+    probs = np.asarray(probs, dtype=float)
+    probs = probs / probs.sum()
+
+    return rng.choice(len(probs), p=probs)
+    
+
 def factor(N):
     """
     Classical simulation of Shor's factoring algorithm
@@ -609,11 +578,11 @@ def factor(N):
         if not is_coprime(x, N):
             return gcd(x, N)  # found a factor trivially
         pvec, true_r = orderFindingSim(N, x, n_first_register) #Returns probability vector pvec
-        m = doMeasurement(pvec) 
+        m = sample_measurement(pvec)  
         r = continued_fraction_expansion(m, 2**n_first_register, max_den=N)
         trials = 0
         while trials < 5:
-            m2 = doMeasurement(pvec)
+            m2 = sample_measurement(pvec)
             r2 = continued_fraction_expansion(m2, 2**n_first_register, max_den=N)
             r = np.lcm(r, r2)
             trials += 1
@@ -623,7 +592,7 @@ def factor(N):
             if f1 not in [1, N]:
                 return f1
             if f2 not in [1, N]:
-                return f2
+                return f2 
 
 
 def doMeasurement(state, projectors):

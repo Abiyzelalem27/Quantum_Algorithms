@@ -206,50 +206,6 @@ def measure_pure_state(psi, projectors):
     
     return outcome, psi_post, probs
     
-
-def doMeasurement(state, projectors):
-    """
-     Perform a projective measurement on a quantum state (pure or density matrix)
-    using a list of projectors
-    Returns:
-        outcome :Index of the measured outcome
-        post_state : Collapsed state after measurement (normalized)
-        probs : Probability 
-    """
-    # Determine if pure state or density matrix
-    pure = state.ndim == 1
-
-    if pure:
-        # Normalize pure state
-        state = state / np.linalg.norm(state)
-        # Probabilities via Born rule
-        probs = np.array([np.real(np.vdot(state, P @ state)) for P in projectors])
-    else:
-        # Density matrix case
-        probs = np.array([np.real(np.trace(P @ state)) for P in projectors])
-
-    # Normalize probabilities (safety)
-    probs = np.clip(probs, 0, 1)
-    probs /= probs.sum()
-    # Sample outcome
-    outcome = np.random.choice(len(projectors), p=probs)
-    Pk = projectors[outcome]
-
-    # Collapse state
-    if pure:
-        post_unnorm = Pk @ state
-        norm_post = np.linalg.norm(post_unnorm)
-        if np.isclose(norm_post, 0):
-            raise ValueError("Outcome probability ~0 (numerical issue).")
-        post_state = post_unnorm / norm_post
-    else:
-        post_state = Pk @ state @ Pk
-        denom = np.trace(post_state)
-        if np.isclose(denom, 0):
-            raise ValueError("Outcome probability ~0 (numerical issue).")
-        post_state = post_state / denom
-    return outcome, post_state, probs
-
 def measurement_density_matrix(rho, projectors):
     """
     Perform measurement using the given projectors
@@ -871,7 +827,6 @@ def syndrome_measurement_phase_flip(psi):
     X2X3 = np.kron(np.kron(I,X), X)
     s1 = 1 if np.vdot(psi, X1X2 @ psi).real > 0 else -1
     s2 = 1 if np.vdot(psi, X2X3 @ psi).real > 0 else -1
-    return (s1, s2)  
 
 
 
