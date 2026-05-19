@@ -5,11 +5,11 @@ from collections import Counter
 import itertools 
 from scipy import sparse 
 import scipy
-import matplotlib.pyplot as plt 
 import math 
 import random
+from quantum_algorithms.operators import I, H, U_one_gate, U_N_qubits, rotation_gate 
 
-def initial_state(n):
+def initial_state(n): 
     """
     Prepared the initial state
     """
@@ -61,10 +61,13 @@ def oracle_function(f, n):
 
 def f_constant_0(x):
     return 0 
+    
 def f_constant_1(x):
     return 1
+    
 def f_balanced_parity(x):
     return x % 2  # 0 for even, 1 for odd 
+    
 def measure_probs_first_n(state, n):
     """Compute prob distribution over first n qubits (sum over ancilla)."""
     probs = np.zeros(2**n)
@@ -89,8 +92,7 @@ def sample_measurements_input(state, n, shots, rng=None):
     return Counter(input_samples) 
 
 def deutsch_jozsa(n, f):
-    """
-    Deutsch–Jozsa Algorithm(DJA) the Boolean function 
+    """Deutsch–Jozsa Algorithm(DJA) the Boolean function 
         is constant or balanced using a single oracle query. 
     """
     total_qubits = n + 1
@@ -100,6 +102,7 @@ def deutsch_jozsa(n, f):
     state = U(state)
     H_first_n = U_N_qubits([H] * n + [I])
     state = H_first_n @ state
+    
     return state  
 
 def deutsch_jozsa_error1(n, f, theta, target_qubit, axis):

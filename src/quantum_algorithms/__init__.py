@@ -2,15 +2,15 @@
 
 from . import (
     adiabatic,
-    deutsch_jose,
+    deutsch_jozsa,
     rydberg,
     operators,
-    shor_algor 
+    shor_algor, 
 ) 
 
 __all__ = [
      "adiabatic",
-    "deutsch_jose",
+    "deutsch_jozsa",
     "rydberg",
     "operators",
     "shor_algor", 
