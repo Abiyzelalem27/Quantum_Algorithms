@@ -3,13 +3,13 @@
 import numpy as np
 from scipy.sparse import kron, identity, csc_matrix
 from qutip import qeye, sigmax, tensor, sigmay, sigmaz
-from qutip import *
+from qutip import * 
 
 def H0_transverse(N):
     """Transverse field Hamiltonian H0 = -sum σx_i"""
     sx_list = []
     for i in range(N):
-        op_list = [qeye(2)] * N
+        op_list = [qeye(2)] * N 
         op_list[i] = sigmax()
         sx_list.append(tensor(op_list))
     H0 = -sum(sx_list)

@@ -10,25 +10,7 @@ import math
 from fractions import Fraction
 import random 
 from math import gcd 
-
-
-
-
-I = np.array([[1, 0],
-              [0, 1]], dtype=complex)
-I8 = np.eye(8, dtype=complex)
-X = np.array([[0, 1],
-              [1, 0]], dtype=complex)
-Y = np.array([[0, -1j],
-              [1j,  0]], dtype=complex)
-Z = np.array([[1,  0],
-              [0, -1]], dtype=complex)
-H = 1 / np.sqrt(2) * np.array([[1,  1],
-                               [1, -1]], dtype=complex)
-P0 = np.array([[1, 0],
-               [0, 0]], dtype=complex)
-P1 = np.array([[0, 0],
-               [0, 1]], dtype=complex)
+from quantum_algorithms.operators import I, X, Y, Z, H, I8, P0, P1
 
 def lcm(a, b):
     """
